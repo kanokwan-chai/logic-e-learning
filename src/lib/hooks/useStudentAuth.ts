@@ -1,40 +1,37 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
+import { useLearningStore } from '@/lib/store/useLearningStore';
 
 /**
- * Hook สำหรับป้องกันหน้านักเรียน
- * - ตรวจ Supabase session
- * - รอให้ progress hydrate จาก Supabase เสร็จก่อน (ป้องกัน redirect ก่อนข้อมูลมา)
+ * Hook สำหรับรอให้ progress hydrate จาก Supabase เสร็จก่อน
+ * - รอให้ StudentActivityTracker ดึงข้อมูลจาก DB มาเสร็จ
  * - คืนค่า isHydrated เพื่อให้หน้าแสดง loading ระหว่างรอ
+ * - การป้องกันหน้า (route protection) ถูกจัดการที่ middleware แล้ว
  */
 export function useStudentAuth() {
-  const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
+  const storeHydrated = useLearningStore((s) => s.isHydrated);
 
   useEffect(() => {
-    // ตรวจสอบ session ก่อน
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        router.replace('/student/login');
-        return;
-      }
+    // ถ้า store hydrate แล้ว (จาก StudentActivityTracker) ก็ใช้ได้เลย
+    if (storeHydrated) {
+      setIsHydrated(true);
+      return;
+    }
 
-      // ฟังเหตุการณ์ hydration จาก StudentActivityTracker
-      const onHydrated = () => setIsHydrated(true);
-      window.addEventListener('progress-hydrated', onHydrated);
+    // ฟังเหตุการณ์ hydration จาก StudentActivityTracker
+    const onHydrated = () => setIsHydrated(true);
+    window.addEventListener('progress-hydrated', onHydrated);
 
-      // Fallback: ถ้า 3 วินาทีแล้วยังไม่ hydrate ก็ปล่อยผ่านไปก่อน
-      const fallback = setTimeout(() => setIsHydrated(true), 3000);
+    // Fallback: ถ้า 3 วินาทีแล้วยังไม่ hydrate ก็ปล่อยผ่านไปก่อน
+    const fallback = setTimeout(() => setIsHydrated(true), 3000);
 
-      return () => {
-        window.removeEventListener('progress-hydrated', onHydrated);
-        clearTimeout(fallback);
-      };
-    });
-  }, [router]);
+    return () => {
+      window.removeEventListener('progress-hydrated', onHydrated);
+      clearTimeout(fallback);
+    };
+  }, [storeHydrated]);
 
   return { isHydrated };
 }

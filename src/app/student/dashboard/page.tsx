@@ -43,10 +43,7 @@ export default function StudentDashboardPage() {
   useEffect(() => {
     async function loadUser() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = '/student/login';
-        return;
-      }
+      if (!user) return; // middleware จัดการ redirect แล้ว
       const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'นักเรียน';
       setDisplayName(name);
       const { data: student } = await supabase
