@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useRef, useState } from 'react';
 import StudentSidebar from '@/components/layout/StudentSidebar';
 import { useLessons } from '@/lib/hooks/useSupabaseContent';
 import { useLearningStore } from '@/lib/store/useLearningStore';
@@ -9,6 +9,7 @@ import MiniQuiz from '@/components/student/MiniQuiz';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { supabase } from '@/lib/supabase/client';
 import { BookOpen, Target, CheckCircle2, ArrowLeft, ArrowRight, Video, Presentation, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function LessonDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -27,6 +28,9 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
   const { isHydrated } = useStudentAuth();
 
+  const [canFinish, setCanFinish] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!isHydrated) return;
 
@@ -44,21 +48,49 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     }
   }, [isHydrated, loading, lessonIndex, lessons, completedLessons, isCompleted, router, preSkillResult]);
 
+  useEffect(() => {
+    if (isCompleted) {
+      setCanFinish(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setCanFinish(true);
+        observer.disconnect();
+      }
+    }, { threshold: 0.1 });
+
+    if (bottomRef.current) {
+      observer.observe(bottomRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isCompleted]);
+
+  const [googleUser, setGoogleUser] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setGoogleUser(user);
+    });
+  }, []);
+
+  const googleName = googleUser?.user_metadata?.full_name || googleUser?.user_metadata?.name || googleUser?.email?.split('@')[0] || 'นักเรียน';
+  const googleId = googleUser?.id || 's-101';
+
   const handleFinishLesson = () => {
     if (lesson) completeLesson(lesson.id);
   };
 
   const getEmbedUrl = (url: string) => {
     if (!url) return '';
-    // Auto-convert Canva links to embed format
     if (url.includes('canva.com') && url.includes('/view') && !url.includes('?embed')) {
       return url.split('/view')[0] + '/view?embed';
     }
-    // Auto-convert Google Drive links to preview format
     if (url.includes('drive.google.com') && url.includes('/view')) {
       return url.replace('/view', '/preview');
     }
-    // Auto-convert YouTube links to embed format
     if (url.includes('youtube.com/watch?v=')) {
       const videoId = url.split('v=')[1].split('&')[0];
       return `https://www.youtube.com/embed/${videoId}`;
@@ -66,6 +98,9 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     if (url.includes('youtu.be/')) {
       const videoId = url.split('youtu.be/')[1].split('?')[0];
       return `https://www.youtube.com/embed/${videoId}`;
+    }
+    if (url.includes('digital-board-game-eight.vercel.app')) {
+      return `${url.split('?')[0]}?student_id=${googleId}&name=${encodeURIComponent(googleName)}&autoLogin=true`;
     }
     return url;
   };
@@ -155,13 +190,13 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           </div>
         )}
 
-        {/* 3. Video / Audio */}
+        {/* 3. Video / Audio / Game */}
         {lesson.video_url && (
           <div className="p-6 rounded-3xl bg-white border border-slate-100 shadow-soft-sm space-y-3">
             <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
-              <Video className="w-4 h-4 text-rose-500" /> 3. สื่อประกอบการเรียนรู้ (วิดีโอ/เสียง)
+              <Video className="w-4 h-4 text-rose-500" /> 3. สื่อประกอบการเรียนรู้ (วิดีโอ/เสียง/เกม)
             </h3>
-            <div className="w-full aspect-video rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 shadow-soft-sm flex items-center justify-center">
+            <div className={`w-full ${lesson.video_url.includes('digital-board-game') ? 'h-[650px]' : 'aspect-video'} rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 shadow-soft-sm flex items-center justify-center`}>
               {lesson.video_url.toLowerCase().endsWith('.mp3') || lesson.video_url.toLowerCase().endsWith('.wav') ? (
                 <div className="w-full p-8 bg-slate-800 h-full flex flex-col items-center justify-center space-y-4">
                   <Video className="w-12 h-12 text-slate-400" />
@@ -172,7 +207,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
               ) : (
                 <iframe
                   src={getEmbedUrl(lesson.video_url)}
-                  title="วิดีโอบทเรียน"
+                  title="สื่อประกอบการเรียนรู้"
                   className="w-full h-full border-0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -187,7 +222,10 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           <div className="space-y-1">
             <h3 className="font-extrabold text-sm text-slate-800">✅ 4. สรุปบทเรียน (Lesson Summary)</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              เรียนครบเนื้อหาบทที่ {lesson.chapter_number} แล้ว! กดปุ่มด้านล่างเพื่อบันทึกการเรียนจบ
+              {canFinish 
+                ? `เรียนครบเนื้อหาบทที่ ${lesson.chapter_number} แล้ว! กดปุ่มด้านล่างเพื่อบันทึกการเรียนจบ`
+                : 'กรุณาเลื่อนลงมาศึกษาเนื้อหาให้ครบทุกส่วนก่อน จึงจะสามารถกดบันทึกการเรียนจบได้'
+              }
             </p>
           </div>
 
@@ -198,20 +236,28 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
             <button
               onClick={handleFinishLesson}
+              disabled={!canFinish}
               className={`px-6 py-3 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
                 isCompleted
                   ? 'bg-emerald-500 text-white shadow-soft-sm'
-                  : 'bg-primary text-white hover:bg-primary-hover shadow-soft-md'
+                  : canFinish
+                    ? 'bg-primary text-white hover:bg-primary-hover shadow-soft-md'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
               }`}
             >
               {isCompleted ? (
                 <><CheckCircle2 className="w-4 h-4 text-white" /> เรียนจบแล้ว ✓</>
-              ) : (
+              ) : canFinish ? (
                 <>กดเพื่อเรียนจบ <ArrowRight className="w-4 h-4" /></>
+              ) : (
+                <>เลื่อนลงมาให้สุด ⬇️</>
               )}
             </button>
           </div>
         </div>
+
+        {/* Target สำหรับเช็คการ Scroll ถึงล่างสุด */}
+        <div ref={bottomRef} className="h-4 w-full" />
       </div>
     </div>
   );

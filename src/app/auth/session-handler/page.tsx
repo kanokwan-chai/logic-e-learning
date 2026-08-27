@@ -10,6 +10,17 @@ export default function SessionHandlerPage() {
   const [status, setStatus] = useState('กำลังตรวจสอบ...');
 
   useEffect(() => {
+    const getNextPath = (progress: any) => {
+      if (!progress) return '/student/dashboard';
+      if (!progress.preKnowledgeResult) return '/student/tests/pre_knowledge';
+      if (!progress.preSkillResult) return '/student/tests/pre_skill';
+      if (!progress.completedLessons || progress.completedLessons.length === 0) return '/student/lessons';
+      if (!progress.gameResult) return '/student/game';
+      if (!progress.postKnowledgeResult) return '/student/tests/post_knowledge';
+      if (!progress.postSkillResult) return '/student/tests/post_skill';
+      return '/student/dashboard';
+    };
+
     const handle = async () => {
       // รอให้ Supabase parse URL และ exchange code เป็น session
       const { data: { session }, error } = await supabase.auth.getSession();
@@ -23,15 +34,15 @@ export default function SessionHandlerPage() {
       if (session) {
         setStatus('เข้าสู่ระบบสำเร็จ! กำลังนำไปยังหน้าเรียน...');
 
-        // เช็คว่ากรอกข้อมูลห้องเรียนแล้วยัง
+        // เช็คว่ากรอกข้อมูลห้องเรียนแล้วยัง พร้อมดึง progress
         const { data: student } = await supabase
           .from('students')
-          .select('id')
+          .select('id, progress_data')
           .eq('id', session.user.id)
           .single();
 
         if (student) {
-          router.replace('/student/dashboard');
+          router.replace(getNextPath(student.progress_data));
         } else {
           router.replace('/student/complete-profile');
         }
@@ -51,17 +62,17 @@ export default function SessionHandlerPage() {
             return;
           }
 
-          // เช็คว่ากรอกข้อมูลห้องเรียนแล้วยัง
+          // เช็คว่ากรอกข้อมูลห้องเรียนแล้วยัง พร้อมดึง progress
           const { data: student } = await supabase
             .from('students')
-            .select('id')
+            .select('id, progress_data')
             .eq('id', data.session.user.id)
             .single();
 
           setStatus('เข้าสู่ระบบสำเร็จ! 🎉');
 
           if (student) {
-            router.replace('/student/dashboard');
+            router.replace(getNextPath(student.progress_data));
           } else {
             router.replace('/student/complete-profile');
           }

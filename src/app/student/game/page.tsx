@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import StudentSidebar from '@/components/layout/StudentSidebar';
 import { useLearningStore } from '@/lib/store/useLearningStore';
+import { useStudentAuth } from '@/lib/hooks/useStudentAuth';
 import { Gamepad2, Sparkles, CheckCircle2, HelpCircle, Save, ExternalLink } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
@@ -27,12 +28,15 @@ export default function DigitalBoardGamePage() {
 
   const { completedLessons } = useLearningStore();
   const router = useRouter();
+  const { isHydrated } = useStudentAuth();
 
   useEffect(() => {
-    if (completedLessons.length < 1) {
-      router.push('/student/dashboard');
-    }
-  }, [completedLessons, router]);
+    // เอาเงื่อนไขที่เตะกลับหน้าแดชบอร์ดออกชั่วคราว เพื่อให้เข้าเกมได้เสมอ
+    // if (!isHydrated) return;
+    // if (completedLessons.length < 1) {
+    //   router.push('/student/dashboard');
+    // }
+  }, [isHydrated, completedLessons, router]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -80,7 +84,6 @@ export default function DigitalBoardGamePage() {
 
           </div>
 
-          {/* Mission Briefing & Tips */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
             <div className="p-3 rounded-2xl bg-white/90 border border-amber-200">
               <p className="font-bold text-slate-800 flex items-center gap-1">🎯 เป้ารายด่าน (Goal)</p>
@@ -91,7 +94,25 @@ export default function DigitalBoardGamePage() {
               <p className="text-[11px] text-slate-600 mt-0.5">จำกฎ AND (จริงทั้งคู่), OR (เท็จทั้งคู่), IF-THEN ให้แม่นยำ</p>
             </div>
             <div className="p-3 rounded-2xl bg-white/90 border border-amber-200">
-              <p className="font-bold text-slate-800 flex items-center gap-1">🏆 คะแนนสูงสุดปัจจุบัน</p>
+              <div className="flex items-center justify-between">
+                <p className="font-bold text-slate-800 flex items-center gap-1">🏆 คะแนนสูงสุดปัจจุบัน</p>
+                {!gameResult && (
+                  <button 
+                    onClick={() => saveGameResult({
+                      id: `game-${Date.now()}`,
+                      user_id: googleId,
+                      score: 100,
+                      time_spent_sec: 600,
+                      attempts: 1,
+                      stages_cleared: 5,
+                      created_at: new Date().toISOString(),
+                    })}
+                    className="text-[10px] bg-primary text-white px-2 py-1 rounded hover:bg-primary-hover"
+                  >
+                    จำลองเซฟคะแนน
+                  </button>
+                )}
+              </div>
               <p className="text-xs font-mono font-extrabold text-primary mt-0.5">
                 {gameResult ? `${gameResult.score} คะแนน (ผ่าน ${gameResult.stages_cleared} ด่าน)` : 'ยังไม่มีผลบันทึก'}
               </p>
