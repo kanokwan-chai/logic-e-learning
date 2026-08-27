@@ -5,7 +5,6 @@ import StudentSidebar from '@/components/layout/StudentSidebar';
 import { Star, Sparkles, Send, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { useLearningStore } from '@/lib/store/useLearningStore';
-import { useAuthStore } from '@/lib/store/useAuthStore';
 import Link from 'next/link';
 
 type SurveyQuestion = {
@@ -15,7 +14,6 @@ type SurveyQuestion = {
 };
 
 export default function StudentSurveyPage() {
-  const { user: authUser } = useAuthStore();
   const { surveyCompleted, completeSurvey } = useLearningStore();
   const [questions, setQuestions] = useState<SurveyQuestion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,9 +54,14 @@ export default function StudentSurveyPage() {
       return;
     }
 
+    if (!studentProfile?.id) {
+      alert('ไม่พบข้อมูลนักเรียน กรุณาล็อกอินใหม่');
+      return;
+    }
+
     setIsSubmitting(true);
-    const user_id = authUser?.id || studentProfile?.id || 's-101';
-    const student_name = studentProfile ? `${studentProfile.first_name} ${studentProfile.last_name}` : authUser?.full_name || 'ไม่ระบุชื่อ';
+    const user_id = studentProfile.id;
+    const student_name = `${studentProfile.first_name} ${studentProfile.last_name}`;
 
     const { error } = await supabase.from('survey_responses').insert([{
       user_id,

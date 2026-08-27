@@ -94,12 +94,28 @@ alter table announcements enable row level security;
 alter table students enable row level security;
 alter table student_progress enable row level security;
 
+-- เพิ่มคอลัมน์ใหม่สำหรับระบบติดตามความก้าวหน้า
+alter table students add column if not exists progress_data jsonb;
+alter table students add column if not exists current_activity text;
+alter table students add column if not exists last_login_at timestamptz;
+
 -- ══ Policy: ให้ anon อ่าน-เขียนได้ทุกตาราง (ปรับได้ภายหลัง) ══
+drop policy if exists "allow all" on lessons;
 create policy "allow all" on lessons for all using (true) with check (true);
+
+drop policy if exists "allow all" on questions;
 create policy "allow all" on questions for all using (true) with check (true);
+
+drop policy if exists "allow all" on labs;
 create policy "allow all" on labs for all using (true) with check (true);
+
+drop policy if exists "allow all" on announcements;
 create policy "allow all" on announcements for all using (true) with check (true);
+
+drop policy if exists "allow all" on students;
 create policy "allow all" on students for all using (true) with check (true);
+
+drop policy if exists "allow all" on student_progress;
 create policy "allow all" on student_progress for all using (true) with check (true);
 
 -- ----------------------------------------------------------

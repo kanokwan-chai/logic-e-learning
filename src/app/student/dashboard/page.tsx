@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import StudentSidebar from '@/components/layout/StudentSidebar';
 import { useLearningStore } from '@/lib/store/useLearningStore';
 import { useLessons } from '@/lib/hooks/useSupabaseContent';
+import { useStudentAuth } from '@/lib/hooks/useStudentAuth';
 import { supabase } from '@/lib/supabase/client';
 import Link from 'next/link';
 import {
@@ -28,7 +29,9 @@ export default function StudentDashboardPage() {
   const [seatNumber, setSeatNumber] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [showLockedAlert, setShowLockedAlert] = useState(false);
+  const [isUserLoading, setIsUserLoading] = useState(true);
   
+  const { isHydrated } = useStudentAuth();
   const { completedLessons, preKnowledgeResult, preSkillResult, postKnowledgeResult, postSkillResult, gameResult } = useLearningStore();
 
   const { lessons: allLessons, loading } = useLessons();
@@ -62,6 +65,7 @@ export default function StudentDashboardPage() {
       } else {
         setAvatarUrl(user.user_metadata?.avatar_url || user.user_metadata?.picture || '/images/student-avatar.jpg');
       }
+      setIsUserLoading(false);
     }
     loadUser();
   }, []);
@@ -79,6 +83,18 @@ export default function StudentDashboardPage() {
 
   const completedQuestsCount = quests.filter((q) => q.isDone).length;
   const isAllQuestsDone = completedQuestsCount === quests.length;
+
+  if (!isHydrated || isUserLoading) {
+    return (
+      <div className="min-h-screen md:flex md:h-screen bg-[#F8FAFC] md:overflow-hidden font-sans">
+        <StudentSidebar />
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <Loader2 className="w-10 h-10 animate-spin text-[#4285F4]" />
+          <p className="text-sm font-bold text-slate-500">กำลังโหลดข้อมูลแดชบอร์ด...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen md:flex md:h-screen bg-[#F8FAFC] md:overflow-hidden font-sans">

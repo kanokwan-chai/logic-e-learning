@@ -53,10 +53,19 @@ export default function Navbar() {
     || `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`;
 
   const handleLogout = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      // บันทึกข้อมูลล่าสุดลง DB ก่อน logout
+      await supabase.from('students').update({
+        progress_data: useLearningStore.getState(),
+      }).eq('id', session.user.id);
+    }
+    
     await supabase.auth.signOut();
     logout(); // Auth store
-    useLearningStore.getState().resetProgress(); // Clear local learning progress
-    router.push('/student/login');
+    // ไม่ลบ localStorage เพราะ DB คือแหล่งข้อมูลหลัก
+    // StudentActivityTracker จะดึงข้อมูลจาก DB เมื่อ login ใหม่
+    window.location.href = '/student/login';
   };
 
   const activeAnnouncements = announcements.filter(a => !dismissedIds.includes(a.id));

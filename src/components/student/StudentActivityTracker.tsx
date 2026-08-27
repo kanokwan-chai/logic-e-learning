@@ -22,6 +22,7 @@ const getActivityFromPath = (path: string): string => {
   return 'ออนไลน์อยู่ในระบบ';
 };
 
+
 export default function StudentActivityTracker() {
   const pathname = usePathname();
   const [userId, setUserId] = useState<string | null>(null);
@@ -53,23 +54,23 @@ export default function StudentActivityTracker() {
       supabase.from('students').update({
         current_activity: activity,
         last_login_at: new Date().toISOString(),
-      }).eq('id', userId).then();
+      }).eq('id', userId).then((res) => {
+        if (res.error) console.error("Failed to update activity:", res.error);
+      });
     }
 
-    // Measure study time every 1 second
-    const timer = setInterval(() => {
-      useLearningStore.getState().addStudyTime(1);
-    }, 1000);
+    // Measure study time every 1 second (DISABLED TO PREVENT MULTIPLE TABS FROM OVERWRITING DATABASE)
+    // const timer = setInterval(() => {
+    //   useLearningStore.getState().addStudyTime(1);
+    // }, 1000);
 
-    return () => clearInterval(timer);
+    // return () => clearInterval(timer);
 
   }, [pathname, userId]);
 
   // 2. Sync Progress Data (Store Changes) <-> Supabase
   useEffect(() => {
     if (!userId) {
-      // ถ้าไม่มี user (logout) ให้เคลียร์ข้อมูลเก่าทิ้ง
-      useLearningStore.getState().resetProgress();
       return;
     }
 
@@ -79,9 +80,23 @@ export default function StudentActivityTracker() {
     let unsubscribeStore: () => void;
 
     const initializeData = async () => {
-      // ดึงข้อมูลความก้าวหน้าจาก Supabase ของ User คนนี้มาทับในเครื่อง
-      const { data } = await supabase.from('students').select('progress_data').eq('id', userId).single();
+      // ดึงข้อมูลความก้าวหน้าจาก Supabase ของ User คนนี้มา (ทำทุกครั้งที่ userId เปลี่ยน)
+      const { data, error } = await supabase.from('students').select('progress_data').eq('id', userId).single();
       
+      if (error && error.code === 'PGRST116') {
+        // ไม่มีข้อมูลในตาราง students (อาจถูกลบ) ให้ไปสร้างโปรไฟล์ใหม่
+        if (window.location.pathname !== '/student/complete-profile') {
+          window.location.href = '/student/complete-profile';
+        }
+        return;
+      }
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching progress:', error);
+        // Do not wipe local state if there's a network error
+        return;
+      }
+
       if (data?.progress_data) {
         useLearningStore.setState({ ...data.progress_data, isHydrated: true });
       } else {
@@ -100,14 +115,21 @@ export default function StudentActivityTracker() {
       supabase.from('students').update({
         last_login_at: new Date().toISOString(),
         progress_data: useLearningStore.getState(),
-      }).eq('id', userId).then();
+      }).eq('id', userId).then((res) => {
+        if (res.error) console.error("Failed to run initial sync:", res.error);
+      });
 
       syncInterval = setInterval(() => {
         if (syncPending) {
           syncPending = false;
           supabase.from('students').update({
             progress_data: useLearningStore.getState(),
-          }).eq('id', userId).then();
+          }).eq('id', userId).then((res) => {
+            if (res.error) {
+              console.error("Failed to sync progress, will retry:", res.error);
+              syncPending = true; // Retry on next interval
+            }
+          });
         }
       }, 5000);
 
@@ -127,7 +149,9 @@ export default function StudentActivityTracker() {
       if (syncPending) {
         supabase.from('students').update({
           progress_data: useLearningStore.getState(),
-        }).eq('id', userId).then();
+        }).eq('id', userId).then((res) => {
+          if (res.error) console.error("Failed to run final sync on unmount:", res.error);
+        });
       }
     };
   }, [userId]);
