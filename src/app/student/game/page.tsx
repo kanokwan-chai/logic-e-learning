@@ -65,18 +65,6 @@ export default function DigitalBoardGamePage() {
   }, [googleId, saveGameResult]);
 
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen md:flex md:h-screen bg-[#F8FAFC] md:overflow-hidden font-sans">
-        <StudentSidebar />
-        <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
-          <p className="text-sm font-bold text-slate-500">กำลังเชื่อมต่อกับระบบเกม...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col md:flex-row gap-6">
       <StudentSidebar />
@@ -161,7 +149,8 @@ export default function DigitalBoardGamePage() {
               src={`https://digital-board-game-eight.vercel.app/?student_id=${googleId}&name=${encodeURIComponent(googleName)}&autoLogin=true`}
               title="Digital Board Game Mission"
               className="w-full h-full border-0 absolute inset-0 z-10"
-              allow="autoplay; fullscreen"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+              allowFullScreen
             />
           </div>
         </div>
