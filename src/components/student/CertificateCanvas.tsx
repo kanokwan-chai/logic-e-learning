@@ -48,16 +48,7 @@ export default function CertificateCanvas({
       const y = (H - canvas.height * ratio) / 2;
 
       pdf.addImage(imgData, 'PNG', x, y, canvas.width * ratio, canvas.height * ratio);
-
-      // ดาวน์โหลดโดยตรง ไม่ต้องผ่าน print dialog
-      const pdfBytes = pdf.output('arraybuffer');
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Logic_Certificate.pdf';
-      a.click();
-      URL.revokeObjectURL(url);
+      pdf.save('Logic_Certificate.pdf');
     } catch (err) {
       console.error(err);
       alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
