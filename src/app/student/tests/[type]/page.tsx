@@ -118,13 +118,23 @@ export default function TestPage() {
     savePartialTestAnswers(testType, updated);
   };
 
+  const [submitting, setSubmitting] = useState(false);
+
   const handleSubmitTest = async () => {
+    const unansweredIdx = userAnswers.findIndex((a) => a === null);
+    if (unansweredIdx !== -1) {
+      setCurrentIndex(unansweredIdx);
+      alert(`คุณยังไม่ได้ตอบข้อที่ ${unansweredIdx + 1} ค่ะ กรุณาเลือกคำตอบให้ครบก่อนส่งนะคะ (เหลืออีก ${questions.length - answeredCount} ข้อ)`);
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitted(true);
+
     let calculatedScore = 0;
     questions.forEach((q, idx) => {
       if (userAnswers[idx] === q.correct_option_index) calculatedScore += 1;
     });
-
-    setSubmitted(true);
 
     const { data: { user } } = await supabase.auth.getUser();
     const resultObj = {
@@ -345,22 +355,26 @@ export default function TestPage() {
                     </div>
 
                     <div className="pt-4 border-t border-slate-100">
-                      {submitted ? (
-                        <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-center text-emerald-800 font-bold text-xs">
-                          ส่งคำตอบแล้ว
-                        </div>
-                      ) : (
-                        <button
-                          onClick={handleSubmitTest}
-                          disabled={!isAllAnswered}
-                          className="btn-minimal-primary w-full py-3.5 flex items-center justify-center gap-2 disabled:opacity-50"
-                        >
-                          ส่งคำตอบ
-                        </button>
-                      )}
+                      <button
+                        onClick={handleSubmitTest}
+                        disabled={submitting}
+                        className={`btn-minimal-primary w-full py-3.5 flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                          !isAllAnswered ? 'bg-amber-500 hover:bg-amber-600 text-white' : ''
+                        }`}
+                      >
+                        {submitting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" /> กำลังบันทึกคะแนน...
+                          </>
+                        ) : !isAllAnswered ? (
+                          `ส่งคำตอบ (${answeredCount}/${questions.length})`
+                        ) : (
+                          'ส่งคำตอบ'
+                        )}
+                      </button>
                       {!isAllAnswered && !submitted && (
-                        <p className="text-center text-[10px] text-rose-500 font-bold mt-2">
-                          *กรุณาตอบให้ครบทุกข้อ ({answeredCount}/{questions.length})
+                        <p className="text-center text-[10px] text-amber-600 font-bold mt-2">
+                          *กดปุ่มเพื่อดูข้อที่ยังไม่ได้ทำ (เหลืออีก {questions.length - answeredCount} ข้อ)
                         </p>
                       )}
                     </div>
