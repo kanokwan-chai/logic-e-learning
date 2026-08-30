@@ -8,6 +8,15 @@ import { supabase } from '@/lib/supabase/client';
 import { saveGameResultToDB } from '@/lib/supabase/db';
 import type { User } from '@supabase/supabase-js';
 
+function hashEmailToNumber(email: string): number {
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) {
+    hash = (hash << 5) - hash + email.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash) % 1000000;
+}
+
 export default function DigitalBoardGamePage() {
   const { gameResult, saveGameResult } = useLearningStore();
   const [googleUser, setGoogleUser] = useState<User | null>(null);
@@ -27,44 +36,67 @@ export default function DigitalBoardGamePage() {
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wcXVxZG9jY2FkcHhqdnVmY3VkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU2NzMxMTQsImV4cCI6MjEwMTI0OTExNH0.9oc5PP4sNqkmZpTZJDvIQGf2-1c7WU-_AZQ0gBcNKCo'
           );
 
-          const { data: currentStudent } = await supabase
+          // คำนวณ student_number แบบเดียวกับที่เกมคำนวณ
+          const emailOrId = user.email || user.id;
+          const studentEmail = emailOrId.includes('@') ? emailOrId : `${emailOrId}@student.local`;
+          const studentNum = hashEmailToNumber(studentEmail);
+
+          // 1. ค้นหาจาก number ที่ตรงกับ session ในเกม
+          const { data: exactStudent } = await boardGameClient
             .from('students')
-            .select('first_name, last_name')
-            .eq('id', user.id)
-            .single();
+            .select('id, name, number')
+            .eq('number', studentNum)
+            .maybeSingle();
 
-          if (currentStudent) {
-            const fullName = `${currentStudent.first_name || ''} ${currentStudent.last_name || ''}`.trim().toLowerCase();
-            const { data: bgStudents } = await boardGameClient.from('students').select('id, name');
-            const matching = (bgStudents || []).filter(
-              (b) => b.name && (
-                b.name.toLowerCase().includes(fullName) ||
-                fullName.includes(b.name.toLowerCase()) ||
-                b.name.toLowerCase().includes((currentStudent.first_name || '').toLowerCase())
-              )
-            );
+          let targetStudentId = exactStudent?.id;
 
-            if (matching.length > 0) {
-              const matchingIds = matching.map((m) => m.id);
-              const { data: bgResults } = await boardGameClient
-                .from('game_results')
-                .select('score, level_completed')
-                .in('student_id', matchingIds);
+          // 2. ถ้าไม่เจอ ให้ค้นหาจากชื่อ
+          if (!targetStudentId) {
+            const { data: currentStudent } = await supabase
+              .from('students')
+              .select('first_name, last_name')
+              .eq('id', user.id)
+              .single();
 
-              if (bgResults && bgResults.length > 0) {
-                const maxScore = Math.max(...bgResults.map((r) => Number(r.score) || 0));
-                if (maxScore > 0) {
-                  setRealScore(maxScore);
-                  saveGameResultToDB(user.id, {
-                    id: 'game-synced',
-                    user_id: user.id,
-                    score: maxScore,
-                    stages_cleared: 5,
-                    attempts: bgResults.length,
-                    time_spent_sec: 600,
-                    created_at: new Date().toISOString(),
-                  });
-                }
+            if (currentStudent) {
+              const fullName = `${currentStudent.first_name || ''} ${currentStudent.last_name || ''}`.trim().toLowerCase();
+              const { data: bgStudents } = await boardGameClient.from('students').select('id, name');
+              const matching = (bgStudents || []).filter(
+                (b) => b.name && (
+                  b.name.toLowerCase().includes(fullName) ||
+                  fullName.includes(b.name.toLowerCase()) ||
+                  b.name.toLowerCase().includes((currentStudent.first_name || '').toLowerCase())
+                )
+              );
+              if (matching.length > 0) {
+                targetStudentId = matching[0].id;
+              }
+            }
+          }
+
+          if (targetStudentId) {
+            const { data: bgResults } = await boardGameClient
+              .from('game_results')
+              .select('score, level_completed, completed_at')
+              .eq('student_id', targetStudentId)
+              .order('completed_at', { ascending: false });
+
+            if (bgResults && bgResults.length > 0) {
+              const latestScore = Number(bgResults[0].score) || 0;
+              const maxScore = Math.max(...bgResults.map((r) => Number(r.score) || 0));
+              const finalScore = latestScore > 0 ? latestScore : maxScore;
+
+              if (finalScore > 0) {
+                setRealScore(finalScore);
+                saveGameResultToDB(user.id, {
+                  id: 'game-synced',
+                  user_id: user.id,
+                  score: finalScore,
+                  stages_cleared: 5,
+                  attempts: bgResults.length,
+                  time_spent_sec: 600,
+                  created_at: new Date().toISOString(),
+                });
               }
             }
           }
@@ -156,7 +188,7 @@ export default function DigitalBoardGamePage() {
                       <Trophy className="w-4 h-4 text-amber-500" /> คะแนนที่เล่นได้จริง
                     </p>
                     <span className="text-[10px] bg-purple-600 text-white px-2 py-0.5 rounded-full font-black">
-                      บันทึกอัตโนมัติ
+                      ตรงกับในเกม
                     </span>
                   </div>
                   <p className="text-lg font-mono font-black text-purple-700 mt-1">
