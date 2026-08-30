@@ -133,11 +133,15 @@ export async function saveLessonCompletionToDB(studentId: string, lessonId: stri
  */
 export async function saveSurveyToDB(studentId: string, answers: Record<string, any>) {
   try {
+    const { data: student } = await supabase.from('students').select('first_name, last_name').eq('id', studentId).single();
+    const studentName = student ? `${student.first_name} ${student.last_name}` : 'นักเรียน';
+
     await supabase.from('survey_responses').insert([
       {
-        student_id: studentId,
-        answers,
-        submitted_at: new Date().toISOString(),
+        user_id: studentId,
+        student_name: studentName,
+        responses: answers,
+        created_at: new Date().toISOString(),
       },
     ]);
 
@@ -301,7 +305,7 @@ export async function fetchStudentDashboardData(studentId: string): Promise<Dash
     const { data: surveys } = await supabase
       .from('survey_responses')
       .select('id')
-      .eq('student_id', studentId)
+      .eq('user_id', studentId)
       .limit(1);
 
     if (surveys && surveys.length > 0) {
