@@ -37,6 +37,17 @@ export default function TeacherSurveyPage() {
   useEffect(() => {
     fetchQuestions();
     fetchResponses();
+
+    const channel = supabase
+      .channel('survey-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'survey_responses' }, () => {
+        fetchResponses();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   async function fetchQuestions() {

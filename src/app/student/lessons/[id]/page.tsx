@@ -45,7 +45,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
         setCanFinish(true);
         observer.disconnect();
       }
-    }, { threshold: 0.1 });
+    }, { threshold: 0, rootMargin: '200px' });
 
     if (bottomRef.current) {
       observer.observe(bottomRef.current);
