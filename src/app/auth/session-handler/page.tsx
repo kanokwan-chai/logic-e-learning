@@ -32,17 +32,16 @@ export default function SessionHandlerPage() {
       }
 
       if (session) {
-        setStatus('เข้าสู่ระบบสำเร็จ! กำลังนำไปยังหน้าเรียน...');
+        setStatus('เข้าสู่ระบบสำเร็จ! กำลังนำไปยังหน้าหลัก...');
 
-        // เช็คว่ากรอกข้อมูลห้องเรียนแล้วยัง พร้อมดึง progress
         const { data: student } = await supabase
           .from('students')
-          .select('id, progress_data')
+          .select('id')
           .eq('id', session.user.id)
           .single();
 
         if (student) {
-          router.replace(getNextPath(student.progress_data));
+          router.replace('/student/dashboard');
         } else {
           router.replace('/student/complete-profile');
         }
@@ -72,7 +71,7 @@ export default function SessionHandlerPage() {
           setStatus('เข้าสู่ระบบสำเร็จ! 🎉');
 
           if (student) {
-            router.replace(getNextPath(student.progress_data));
+            router.replace('/student/dashboard');
           } else {
             router.replace('/student/complete-profile');
           }
