@@ -38,11 +38,28 @@ export default function DigitalBoardGamePage() {
     // }
   }, [isHydrated, completedLessons, router]);
 
+  const handleSaveGameResult = async (gameObj: any) => {
+    saveGameResult(gameObj);
+    setScore(gameObj.score || 0);
+    setStages(gameObj.stages_cleared || 5);
+    setAttempts(gameObj.attempts || 1);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    const uid = user?.id || googleId;
+    if (uid && uid !== 's-101') {
+      const currentState = useLearningStore.getState();
+      await supabase.from('students').update({
+        progress_data: { ...currentState, gameResult: gameObj },
+        last_login_at: new Date().toISOString(),
+      }).eq('id', uid);
+    }
+  };
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'BOARD_GAME_COMPLETED') {
         const payload = event.data.payload;
-        saveGameResult({
+        handleSaveGameResult({
           id: `game-${Date.now()}`,
           user_id: googleId,
           score: payload.score || 0,
@@ -51,10 +68,6 @@ export default function DigitalBoardGamePage() {
           stages_cleared: payload.stagesCleared || 5,
           created_at: new Date().toISOString(),
         });
-        
-        setScore(payload.score || 0);
-        setStages(payload.stagesCleared || 5);
-        setAttempts(payload.attempts || 1);
       }
     };
 
@@ -96,7 +109,7 @@ export default function DigitalBoardGamePage() {
                 <p className="font-bold text-slate-800 flex items-center gap-1">🏆 คะแนนสูงสุดปัจจุบัน</p>
                 {!gameResult && (
                   <button 
-                    onClick={() => saveGameResult({
+                    onClick={() => handleSaveGameResult({
                       id: `game-${Date.now()}`,
                       user_id: googleId,
                       score: 100,

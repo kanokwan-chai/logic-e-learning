@@ -75,16 +75,14 @@ export default function StudentActivityTracker() {
     }
 
     let isSubscribed = true;
-    let syncPending = false;
-    let syncInterval: NodeJS.Timeout;
+    let debounceTimer: NodeJS.Timeout;
     let unsubscribeStore: () => void;
 
     const initializeData = async () => {
-      // ดึงข้อมูลความก้าวหน้าจาก Supabase ของ User คนนี้มา (ทำทุกครั้งที่ userId เปลี่ยน)
+      // ดึงข้อมูลความก้าวหน้าจาก Supabase ของ User คนนี้มา
       const { data, error } = await supabase.from('students').select('progress_data').eq('id', userId).single();
       
       if (error && error.code === 'PGRST116') {
-        // ไม่มีข้อมูลในตาราง students (อาจถูกลบ) ให้ไปสร้างโปรไฟล์ใหม่
         if (window.location.pathname !== '/student/complete-profile') {
           window.location.href = '/student/complete-profile';
         }
@@ -93,48 +91,46 @@ export default function StudentActivityTracker() {
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching progress:', error);
-        // Do not wipe local state if there's a network error
         return;
       }
 
       if (data?.progress_data) {
-        useLearningStore.setState({ ...data.progress_data, isHydrated: true });
+        const currentLocal = useLearningStore.getState();
+        // รวมข้อมูลอย่างปลอดภัย ไม่ให้ข้อมูลใหม่ในเครื่องถูกเขียนทับเป็น null
+        const merged = {
+          ...data.progress_data,
+          completedLessons: Array.from(new Set([...(data.progress_data.completedLessons || []), ...(currentLocal.completedLessons || [])])),
+          preKnowledgeResult: currentLocal.preKnowledgeResult || data.progress_data.preKnowledgeResult || null,
+          preSkillResult: currentLocal.preSkillResult || data.progress_data.preSkillResult || null,
+          gameResult: currentLocal.gameResult || data.progress_data.gameResult || null,
+          postKnowledgeResult: currentLocal.postKnowledgeResult || data.progress_data.postKnowledgeResult || null,
+          postSkillResult: currentLocal.postSkillResult || data.progress_data.postSkillResult || null,
+          isHydrated: true,
+        };
+        useLearningStore.setState(merged);
       } else {
-        useLearningStore.getState().resetProgress();
         useLearningStore.setState({ isHydrated: true });
       }
 
-      // บอกให้ทุกหน้ารู้ว่า hydrate เสร็จแล้ว
+      // แจ้งทุกคอมโพเนนต์ว่าโหลดเสร็จแล้ว
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('progress-hydrated'));
       }
 
       if (!isSubscribed) return;
 
-      // เมื่อดึงข้อมูลเสร็จ ค่อยเริ่มกระบวนการ Sync กลับไปที่ Supabase
-      supabase.from('students').update({
-        last_login_at: new Date().toISOString(),
-        progress_data: useLearningStore.getState(),
-      }).eq('id', userId).then((res) => {
-        if (res.error) console.error("Failed to run initial sync:", res.error);
-      });
-
-      syncInterval = setInterval(() => {
-        if (syncPending) {
-          syncPending = false;
+      // เมื่อ State มีการเปลี่ยนแปลง ให้ซิงค์กลับไป Supabase ทันที (Debounce 200ms)
+      unsubscribeStore = useLearningStore.subscribe((state) => {
+        if (!state.isHydrated) return;
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
           supabase.from('students').update({
-            progress_data: useLearningStore.getState(),
+            last_login_at: new Date().toISOString(),
+            progress_data: state,
           }).eq('id', userId).then((res) => {
-            if (res.error) {
-              console.error("Failed to sync progress, will retry:", res.error);
-              syncPending = true; // Retry on next interval
-            }
+            if (res.error) console.error("Failed to sync progress:", res.error);
           });
-        }
-      }, 5000);
-
-      unsubscribeStore = useLearningStore.subscribe(() => {
-        syncPending = true;
+        }, 200);
       });
     };
 
@@ -142,20 +138,19 @@ export default function StudentActivityTracker() {
 
     return () => {
       isSubscribed = false;
-      if (syncInterval) clearInterval(syncInterval);
+      clearTimeout(debounceTimer);
       if (unsubscribeStore) unsubscribeStore();
 
-      // Final sync on unmount
-      if (syncPending) {
+      // บันทึกทันทีก่อน Unmount
+      const currentState = useLearningStore.getState();
+      if (currentState.isHydrated) {
         supabase.from('students').update({
-          progress_data: useLearningStore.getState(),
-        }).eq('id', userId).then((res) => {
-          if (res.error) console.error("Failed to run final sync on unmount:", res.error);
-        });
+          progress_data: currentState,
+          last_login_at: new Date().toISOString(),
+        }).eq('id', userId);
       }
     };
   }, [userId]);
 
-
-  return null; // Invisible component
+  return null;
 }
