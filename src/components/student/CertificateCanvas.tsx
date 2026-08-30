@@ -144,24 +144,6 @@ export default function CertificateCanvas({
         </div>
       </div>
 
-      {/* Download Button */}
-      <div className="flex justify-center mt-6">
-        <button
-          onClick={downloadPDF}
-          disabled={loading}
-          className="bg-primary hover:bg-primary-hover active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed px-8 py-4 rounded-2xl text-white text-sm font-black shadow-soft-lg flex items-center gap-3 transition-all cursor-pointer"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" /> กำลังสร้าง PDF...
-            </>
-          ) : (
-            <>
-              <Download className="w-5 h-5" /> โหลดใบเกียรติบัตรเก็บไว้ (PDF)
-            </>
-          )}
-        </button>
-      </div>
     </div>
   );
 }
