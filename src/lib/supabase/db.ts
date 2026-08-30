@@ -250,6 +250,53 @@ export async function fetchStudentDashboardData(studentId: string): Promise<Dash
       result.gameStages = Number(games[0].stages_cleared);
     }
 
+    // 3.1 ซิงค์คะแนนอัตโนมัติจากฐานข้อมูลบอร์ดเกม (Board Game Supabase) โดยตรง
+    if (result.gameScore === null || result.gameScore === 0) {
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const boardGameClient = createClient(
+          'https://mpquqdoccadpxjvufcud.supabase.co',
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wcXVxZG9jY2FkcHhqdnVmY3VkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU2NzMxMTQsImV4cCI6MjEwMTI0OTExNH0.9oc5PP4sNqkmZpTZJDvIQGf2-1c7WU-_AZQ0gBcNKCo'
+        );
+
+        const { data: currentStudent } = await supabase
+          .from('students')
+          .select('first_name, last_name')
+          .eq('id', studentId)
+          .single();
+
+        if (currentStudent) {
+          const fullName = `${currentStudent.first_name || ''} ${currentStudent.last_name || ''}`.trim().toLowerCase();
+          const { data: bgStudents } = await boardGameClient.from('students').select('id, name');
+          const matching = (bgStudents || []).filter(
+            (b) => b.name && (
+              b.name.toLowerCase().includes(fullName) ||
+              fullName.includes(b.name.toLowerCase()) ||
+              b.name.toLowerCase().includes((currentStudent.first_name || '').toLowerCase())
+            )
+          );
+
+          if (matching.length > 0) {
+            const matchingIds = matching.map((m) => m.id);
+            const { data: bgResults } = await boardGameClient
+              .from('game_results')
+              .select('score, level_completed')
+              .in('student_id', matchingIds);
+
+            if (bgResults && bgResults.length > 0) {
+              const maxScore = Math.max(...bgResults.map((r) => Number(r.score) || 0));
+              if (maxScore > 0) {
+                result.gameScore = maxScore;
+                result.gameStages = 5;
+              }
+            }
+          }
+        }
+      } catch (bgErr) {
+        // Safe fallback
+      }
+    }
+
     // 4. ดึงจากตาราง survey_responses (ถ้ามี)
     const { data: surveys } = await supabase
       .from('survey_responses')
