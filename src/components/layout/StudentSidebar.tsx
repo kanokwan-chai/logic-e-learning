@@ -24,7 +24,7 @@ export default function StudentSidebar() {
     { label: 'ก่อนเรียน (ความรู้)', href: '/student/tests/pre_knowledge', icon: FileCheck2, isLocked: false, isExternal: false },
     { label: 'ก่อนเรียน (ทักษะ)', href: '/student/tests/pre_skill', icon: FileCheck2, isLocked: false, isExternal: false },
     { label: 'บทเรียนตรรกศาสตร์', href: '/student/lessons', icon: BookOpen, isLocked: false, isExternal: false },
-    { label: 'Digital Board Game', href: 'https://digital-board-game-eight.vercel.app', icon: Gamepad2, isLocked: false, isExternal: true },
+    { label: 'Digital Board Game', href: '/student/game', icon: Gamepad2, isLocked: false, isExternal: false },
     { label: 'หลังเรียน (ความรู้)', href: '/student/tests/post_knowledge', icon: FileCheck2, isLocked: false, isExternal: false },
     { label: 'หลังเรียน (ทักษะ)', href: '/student/tests/post_skill', icon: FileCheck2, isLocked: false, isExternal: false },
     { label: 'ประเมินความพึงพอใจ', href: '/student/survey', icon: Star, isLocked: false, isExternal: false },

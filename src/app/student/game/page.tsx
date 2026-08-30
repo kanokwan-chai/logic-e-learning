@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import StudentSidebar from '@/components/layout/StudentSidebar';
 import { useLearningStore } from '@/lib/store/useLearningStore';
-import { Gamepad2, Sparkles, HelpCircle, ExternalLink } from 'lucide-react';
+import { Gamepad2, Sparkles, HelpCircle, ExternalLink, Trophy } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { saveGameResultToDB } from '@/lib/supabase/db';
 import type { User } from '@supabase/supabase-js';
@@ -11,25 +11,78 @@ import type { User } from '@supabase/supabase-js';
 export default function DigitalBoardGamePage() {
   const { gameResult, saveGameResult } = useLearningStore();
   const [googleUser, setGoogleUser] = useState<User | null>(null);
+  const [realScore, setRealScore] = useState<number>(gameResult?.score || 0);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setGoogleUser(user);
-    });
+    async function loadUserAndScore() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setGoogleUser(user);
+
+        // ดึงคะแนนจริงจากฐานข้อมูลบอร์ดเกม Supabase (mpquqdoccadpxjvufcud)
+        try {
+          const { createClient } = await import('@supabase/supabase-js');
+          const boardGameClient = createClient(
+            'https://mpquqdoccadpxjvufcud.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wcXVxZG9jY2FkcHhqdnVmY3VkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU2NzMxMTQsImV4cCI6MjEwMTI0OTExNH0.9oc5PP4sNqkmZpTZJDvIQGf2-1c7WU-_AZQ0gBcNKCo'
+          );
+
+          const { data: currentStudent } = await supabase
+            .from('students')
+            .select('first_name, last_name')
+            .eq('id', user.id)
+            .single();
+
+          if (currentStudent) {
+            const fullName = `${currentStudent.first_name || ''} ${currentStudent.last_name || ''}`.trim().toLowerCase();
+            const { data: bgStudents } = await boardGameClient.from('students').select('id, name');
+            const matching = (bgStudents || []).filter(
+              (b) => b.name && (
+                b.name.toLowerCase().includes(fullName) ||
+                fullName.includes(b.name.toLowerCase()) ||
+                b.name.toLowerCase().includes((currentStudent.first_name || '').toLowerCase())
+              )
+            );
+
+            if (matching.length > 0) {
+              const matchingIds = matching.map((m) => m.id);
+              const { data: bgResults } = await boardGameClient
+                .from('game_results')
+                .select('score, level_completed')
+                .in('student_id', matchingIds);
+
+              if (bgResults && bgResults.length > 0) {
+                const maxScore = Math.max(...bgResults.map((r) => Number(r.score) || 0));
+                if (maxScore > 0) {
+                  setRealScore(maxScore);
+                  saveGameResultToDB(user.id, {
+                    id: 'game-synced',
+                    user_id: user.id,
+                    score: maxScore,
+                    stages_cleared: 5,
+                    attempts: bgResults.length,
+                    time_spent_sec: 600,
+                    created_at: new Date().toISOString(),
+                  });
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // fallback
+        }
+      }
+    }
+
+    loadUserAndScore();
   }, []);
 
   const googleName = googleUser?.user_metadata?.full_name || googleUser?.user_metadata?.name || googleUser?.email?.split('@')[0] || 'นักเรียน';
   const googleId = googleUser?.id || 's-101';
 
-  const [score, setScore] = useState(gameResult?.score || 0);
-  const [stages, setStages] = useState(gameResult?.stages_cleared || 0);
-  const [attempts, setAttempts] = useState(gameResult?.attempts || 0);
-
   const handleSaveGameResult = async (gameObj: any) => {
     saveGameResult(gameObj);
-    setScore(gameObj.score || 0);
-    setStages(gameObj.stages_cleared || 5);
-    setAttempts(gameObj.attempts || 1);
+    setRealScore(gameObj.score || 0);
 
     const { data: { user } } = await supabase.auth.getUser();
     const uid = user?.id || googleId;
@@ -91,34 +144,23 @@ export default function DigitalBoardGamePage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
                 <div className="p-3.5 rounded-2xl bg-white/90 border border-purple-100 shadow-sm">
                   <p className="font-bold text-slate-800 flex items-center gap-1">🎯 เป้ารายด่าน (Goal)</p>
-                  <p className="text-[11px] text-slate-600 mt-0.5">พิชิตเกมกระดาน ไขรหัสตรรกะในแต่ละช่องให้ผ่าน</p>
+                  <p className="text-[11px] text-slate-600 mt-0.5">พิชิตเกมกระดาน ไขรหัสตรรกะในแต่ละช่องให้ผ่าน 5 ด่าน</p>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-white/90 border border-purple-100 shadow-sm">
                   <p className="font-bold text-slate-800 flex items-center gap-1">💡 เทคนิคสืบสวน (Tips)</p>
                   <p className="text-[11px] text-slate-600 mt-0.5">จำกฎ AND (จริงทั้งคู่), OR (เท็จทั้งคู่), IF-THEN ให้แม่นยำ</p>
                 </div>
-                <div className="p-3.5 rounded-2xl bg-white/90 border border-purple-100 shadow-sm">
+                <div className="p-3.5 rounded-2xl bg-purple-50/80 border border-purple-200 shadow-sm">
                   <div className="flex items-center justify-between">
-                    <p className="font-bold text-slate-800 flex items-center gap-1">🏆 คะแนนล่าสุด</p>
-                    {!gameResult && (
-                      <button 
-                        onClick={() => handleSaveGameResult({
-                          id: `game-${Date.now()}`,
-                          user_id: googleId,
-                          score: 100,
-                          time_spent_sec: 600,
-                          attempts: 1,
-                          stages_cleared: 5,
-                          created_at: new Date().toISOString(),
-                        })}
-                        className="text-[10px] bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 font-bold shadow-soft-sm cursor-pointer"
-                      >
-                        จำลองเซฟคะแนน
-                      </button>
-                    )}
+                    <p className="font-black text-purple-900 flex items-center gap-1">
+                      <Trophy className="w-4 h-4 text-amber-500" /> คะแนนที่เล่นได้จริง
+                    </p>
+                    <span className="text-[10px] bg-purple-600 text-white px-2 py-0.5 rounded-full font-black">
+                      บันทึกอัตโนมัติ
+                    </span>
                   </div>
-                  <p className="text-xs font-mono font-extrabold text-purple-700 mt-0.5">
-                    {gameResult ? `${gameResult.score} คะแนน (ผ่าน ${gameResult.stages_cleared} ด่าน)` : 'ยังไม่มีผลบันทึก'}
+                  <p className="text-lg font-mono font-black text-purple-700 mt-1">
+                    {realScore > 0 ? `${realScore} คะแนน` : gameResult ? `${gameResult.score} คะแนน` : '0 คะแนน'}
                   </p>
                 </div>
               </div>
@@ -138,7 +180,7 @@ export default function DigitalBoardGamePage() {
             <div className="p-2 sm:p-4 rounded-[2rem] bg-white border border-slate-200 shadow-soft-lg overflow-hidden space-y-3">
               <div className="flex items-center justify-between px-3 py-1 text-xs text-slate-500">
                 <span className="font-bold flex items-center gap-1 text-slate-700">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" /> หน้าต่างเกมกระดาน Digital Board Game
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" /> หน้าต่างเกมกระดาน Digital Board Game (เล่นในบทเรียนได้ทันที)
                 </span>
                 <button
                   onClick={() => window.open(`https://digital-board-game-eight.vercel.app/?student_id=${googleId}&name=${encodeURIComponent(googleName)}&autoLogin=true`, 'game_window')}
