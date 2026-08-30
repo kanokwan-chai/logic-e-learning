@@ -85,8 +85,19 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     return () => window.removeEventListener('message', handleMessage);
   }, [googleId, saveGameResult]);
 
-  const handleFinishLesson = () => {
-    if (lesson) completeLesson(lesson.id);
+  const handleFinishLesson = async () => {
+    if (lesson) {
+      completeLesson(lesson.id);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.id) {
+        const currentState = useLearningStore.getState();
+        const updatedLessons = Array.from(new Set([...currentState.completedLessons, lesson.id]));
+        await supabase.from('students').update({
+          progress_data: { ...currentState, completedLessons: updatedLessons },
+          last_login_at: new Date().toISOString(),
+        }).eq('id', user.id);
+      }
+    }
   };
 
   const isBoardGameUrl = (url: string) => {
