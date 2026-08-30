@@ -35,7 +35,7 @@ export default function CertificateCanvas({
       await new Promise((r) => setTimeout(r, 300));
 
       const canvas = await html2canvas(certRef.current, {
-        scale: 2,
+        scale: 1.5,
         useCORS: true,
         allowTaint: false,
         backgroundColor: '#ffffff',
@@ -43,7 +43,7 @@ export default function CertificateCanvas({
         imageTimeout: 0,
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const imgData = canvas.toDataURL('image/jpeg', 0.92);
 
       // ขนาด A4 landscape (297 x 210 mm)
       const pdf = new jsPDF({
@@ -63,7 +63,8 @@ export default function CertificateCanvas({
       const yOffset = (pdfHeight - imgHeight * ratio) / 2;
 
       pdf.addImage(imgData, 'JPEG', xOffset, yOffset, imgWidth * ratio, imgHeight * ratio);
-      pdf.save(`ใบเกียรติบัตร_${studentName}_LogicELearning.pdf`);
+      // ใช้ชื่อไฟล์ ASCII เพื่อให้แสดงผลถูกต้องบน Windows
+      pdf.save(`Certificate_LogicELearning_${String(studentId).slice(0, 8)}.pdf`);
     } catch (err) {
       console.error('PDF export error:', err);
       alert('เกิดข้อผิดพลาดในการสร้าง PDF กรุณาลองใหม่อีกครั้ง');
