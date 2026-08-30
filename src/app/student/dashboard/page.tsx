@@ -48,20 +48,14 @@ export default function StudentDashboardPage() {
       setDisplayName(name);
       const { data: student } = await supabase
         .from('students')
-        .select('number, class_name, avatar_url')
+        .select('number, class_name')
         .eq('id', user.id)
         .single();
       if (student) {
         setClassName(student.class_name);
         setSeatNumber(String(student.number));
-        if (student.avatar_url) {
-          setAvatarUrl(student.avatar_url);
-        } else {
-          setAvatarUrl(user.user_metadata?.avatar_url || user.user_metadata?.picture || '/images/student-avatar.jpg');
-        }
-      } else {
-        setAvatarUrl(user.user_metadata?.avatar_url || user.user_metadata?.picture || '/images/student-avatar.jpg');
       }
+      setAvatarUrl(user.user_metadata?.custom_avatar || user.user_metadata?.avatar_url || user.user_metadata?.picture || '/images/student-avatar.jpg');
       setIsUserLoading(false);
     }
     loadUser();
