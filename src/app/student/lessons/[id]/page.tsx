@@ -29,29 +29,14 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
   const { isHydrated } = useStudentAuth();
 
-  const [canFinish, setCanFinish] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const [canFinish, setCanFinish] = useState(true);
 
   // Allow accessing any published lesson smoothly without strict redirects
-
+  
   useEffect(() => {
     if (isCompleted) {
       setCanFinish(true);
-      return;
     }
-
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setCanFinish(true);
-        observer.disconnect();
-      }
-    }, { threshold: 0, rootMargin: '200px' });
-
-    if (bottomRef.current) {
-      observer.observe(bottomRef.current);
-    }
-
-    return () => observer.disconnect();
   }, [isCompleted]);
 
   const [googleUser, setGoogleUser] = useState<any>(null);
@@ -297,8 +282,6 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
 
-        {/* Target สำหรับเช็คการ Scroll ถึงล่างสุด */}
-        <div ref={bottomRef} className="h-4 w-full" />
       </div>
     </div>
   );

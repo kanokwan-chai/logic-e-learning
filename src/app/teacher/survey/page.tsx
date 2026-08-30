@@ -38,6 +38,11 @@ export default function TeacherSurveyPage() {
     fetchQuestions();
     fetchResponses();
 
+    // Fallback polling every 3 seconds in case Realtime is not enabled in Supabase dashboard
+    const interval = setInterval(() => {
+      fetchResponses();
+    }, 3000);
+
     const channel = supabase
       .channel('survey-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'survey_responses' }, () => {
@@ -46,6 +51,7 @@ export default function TeacherSurveyPage() {
       .subscribe();
 
     return () => {
+      clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, []);
