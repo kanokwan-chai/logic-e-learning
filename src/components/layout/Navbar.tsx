@@ -55,16 +55,16 @@ export default function Navbar() {
   const handleLogout = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
-      // บันทึกข้อมูลล่าสุดลง DB ก่อน logout
-      await supabase.from('students').update({
-        progress_data: useLearningStore.getState(),
-      }).eq('id', session.user.id);
+      const currentState = useLearningStore.getState();
+      if (currentState.isHydrated && (currentState.completedLessons.length > 0 || currentState.preKnowledgeResult !== null)) {
+        await supabase.from('students').update({
+          progress_data: currentState,
+        }).eq('id', session.user.id);
+      }
     }
     
     await supabase.auth.signOut();
     logout(); // Auth store
-    // ไม่ลบ localStorage เพราะ DB คือแหล่งข้อมูลหลัก
-    // StudentActivityTracker จะดึงข้อมูลจาก DB เมื่อ login ใหม่
     window.location.href = '/student/login';
   };
 

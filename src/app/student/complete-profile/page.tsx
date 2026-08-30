@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Compass, Loader2, Save, CheckCircle2 } from 'lucide-react';
+import { useLearningStore } from '@/lib/store/useLearningStore';
 
 const AVATAR_OPTIONS = [
   { id: 'google', label: 'รูปโปรไฟล์เดิม', img: '' },
@@ -42,6 +43,8 @@ export default function CompleteProfilePage() {
 
     const finalAvatar = selectedAvatar === 'google' ? (googleUser?.avatar || '') : AVATAR_OPTIONS.find(a => a.id === selectedAvatar)?.img;
 
+    const { data: existingStudent } = await supabase.from('students').select('progress_data').eq('id', user.id).single();
+
     // Upsert student profile into students table
     const { error: dbError } = await supabase.from('students').upsert({
       id: user.id,
@@ -49,6 +52,7 @@ export default function CompleteProfilePage() {
       last_name: googleUser?.name.split(' ').slice(1).join(' ') || '',
       number: parseInt(seatNumber) || 0,
       class_name: className,
+      progress_data: existingStudent?.progress_data || useLearningStore.getState(),
     });
 
     if (dbError) {
