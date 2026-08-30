@@ -131,12 +131,14 @@ export default function StudentDashboardPage() {
                 </p>
                 
                 <div className="flex flex-wrap items-center gap-3 pt-2">
-                  <Link
-                    href="/student/game"
+                  <a
+                    href="https://digital-board-game-eight.vercel.app"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-blue-600 hover:bg-blue-50 font-black text-sm shadow-lg hover:scale-105 transition-all"
                   >
                     <Gamepad2 className="w-5 h-5 text-purple-600" /> เข้าเล่น Digital Board Game 🎮
-                  </Link>
+                  </a>
                   <Link
                     href="/student/lessons"
                     className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/40 text-white font-bold text-sm shadow-sm transition-all"
@@ -224,14 +226,19 @@ export default function StudentDashboardPage() {
                 </Link>
 
                 {/* Game: Purple */}
-                <Link href="/student/game" className="bg-[#FAF5FF] border border-[#F3E8FF] rounded-3xl p-3 sm:p-4 flex flex-col items-center text-center shadow-sm hover:-translate-y-1 transition-transform cursor-pointer group">
+                <a 
+                  href="https://digital-board-game-eight.vercel.app" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="bg-[#FAF5FF] border border-[#F3E8FF] rounded-3xl p-3 sm:p-4 flex flex-col items-center text-center shadow-sm hover:-translate-y-1 transition-transform cursor-pointer group"
+                >
                   <div className="w-12 h-12 rounded-full bg-white text-[#9333EA] text-2xl flex items-center justify-center shadow-sm mb-2 group-hover:scale-110 transition-transform">🎮</div>
                   <h4 className="font-bold text-[#9333EA] text-xs mb-0.5">บอร์ดเกม</h4>
                   <p className="text-[9px] text-slate-500 font-medium mb-2">แต้มจากการเล่น</p>
                   <div className="bg-white px-2 py-1.5 rounded-lg text-[#9333EA] font-black text-xs w-full border border-[#F3E8FF]">
                     {gameScore !== null ? `${gameScore}` : '—'}
                   </div>
-                </Link>
+                </a>
 
                 {/* Time + Quests combined: Blue */}
                 <Link href="/student/badges" className="bg-[#EFF6FF] border border-[#DBEAFE] rounded-3xl p-3 sm:p-4 flex flex-col items-center text-center shadow-sm hover:-translate-y-1 transition-transform cursor-pointer group">
@@ -317,15 +324,20 @@ export default function StudentDashboardPage() {
                       <p className="text-[10px] text-slate-500 mt-0.5">{isAllQuestsDone ? 'ปลดล็อกแล้ว' : `ต้องการ ${completedQuestsCount}/${quests.length} เควส`}</p>
                     </div>
                   </Link>
-                  <Link href="/student/game" className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-purple-200 hover:bg-purple-50/50 transition-all group">
+                  <a 
+                    href="https://digital-board-game-eight.vercel.app" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-purple-200 hover:bg-purple-50/50 transition-all group"
+                  >
                     <div className="w-10 h-10 rounded-full bg-[#FAF5FF] text-[#9333EA] flex items-center justify-center shrink-0">
                       <Gamepad2 className="w-5 h-5" />
                     </div>
                     <div>
                       <p className="text-xs font-bold text-slate-800 group-hover:text-[#9333EA]">บอร์ดเกม</p>
-                      <p className="text-[10px] text-slate-500 mt-0.5">ทดสอบความเข้าใจของคุณ!</p>
+                      <p className="text-[10px] text-slate-500 mt-0.5">ทดสอบความเข้าใจของคุณ! (เปิดหน้าต่างใหม่ ↗)</p>
                     </div>
-                  </Link>
+                  </a>
                 </div>
               </div>
 

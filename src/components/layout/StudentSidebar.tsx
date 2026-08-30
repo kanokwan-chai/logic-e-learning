@@ -21,13 +21,13 @@ export default function StudentSidebar() {
   const { preKnowledgeResult, preSkillResult, completedLessons, gameResult, postKnowledgeResult, postSkillResult, isHydrated } = useLearningStore();
 
   const quests = [
-    { label: 'ก่อนเรียน (ความรู้)', href: '/student/tests/pre_knowledge', icon: FileCheck2, isLocked: false },
-    { label: 'ก่อนเรียน (ทักษะ)', href: '/student/tests/pre_skill', icon: FileCheck2, isLocked: false },
-    { label: 'บทเรียนตรรกศาสตร์', href: '/student/lessons', icon: BookOpen, isLocked: false },
-    { label: 'Digital Board Game', href: '/student/game', icon: Gamepad2, isLocked: false },
-    { label: 'หลังเรียน (ความรู้)', href: '/student/tests/post_knowledge', icon: FileCheck2, isLocked: false },
-    { label: 'หลังเรียน (ทักษะ)', href: '/student/tests/post_skill', icon: FileCheck2, isLocked: false },
-    { label: 'ประเมินความพึงพอใจ', href: '/student/survey', icon: Star, isLocked: false },
+    { label: 'ก่อนเรียน (ความรู้)', href: '/student/tests/pre_knowledge', icon: FileCheck2, isLocked: false, isExternal: false },
+    { label: 'ก่อนเรียน (ทักษะ)', href: '/student/tests/pre_skill', icon: FileCheck2, isLocked: false, isExternal: false },
+    { label: 'บทเรียนตรรกศาสตร์', href: '/student/lessons', icon: BookOpen, isLocked: false, isExternal: false },
+    { label: 'Digital Board Game', href: 'https://digital-board-game-eight.vercel.app', icon: Gamepad2, isLocked: false, isExternal: true },
+    { label: 'หลังเรียน (ความรู้)', href: '/student/tests/post_knowledge', icon: FileCheck2, isLocked: false, isExternal: false },
+    { label: 'หลังเรียน (ทักษะ)', href: '/student/tests/post_skill', icon: FileCheck2, isLocked: false, isExternal: false },
+    { label: 'ประเมินความพึงพอใจ', href: '/student/survey', icon: Star, isLocked: false, isExternal: false },
   ];
 
   return (
@@ -67,8 +67,10 @@ export default function StudentSidebar() {
               const Icon = item.icon;
               return (
                 <Link
-                  key={item.href}
+                  key={item.label}
                   href={item.isLocked ? '#' : item.href}
+                  target={item.isExternal ? '_blank' : undefined}
+                  rel={item.isExternal ? 'noopener noreferrer' : undefined}
                   onClick={(e) => { if (item.isLocked) { e.preventDefault(); setShowLockedAlert(true); } }}
                   className={`flex items-center gap-3 px-6 py-3.5 transition-all font-bold text-sm border-l-4 ${
                     item.isLocked ? 'opacity-50 cursor-not-allowed text-slate-400 border-transparent' : 
