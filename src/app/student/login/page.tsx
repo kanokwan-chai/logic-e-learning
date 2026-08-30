@@ -10,29 +10,11 @@ export default function StudentLoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // ถ้า login แล้ว redirect ไปหน้าถัดไปที่ต้องทำ
+  // ถ้า login แล้ว ให้ไปที่แดชบอร์ดหลักเสมอ
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        const { data: student } = await supabase
-          .from('students')
-          .select('progress_data')
-          .eq('id', session.user.id)
-          .single();
-          
-        let nextPath = '/student/dashboard';
-        const progress = student?.progress_data;
-        
-        if (progress) {
-          if (!progress.preKnowledgeResult) nextPath = '/student/tests/pre_knowledge';
-          else if (!progress.preSkillResult) nextPath = '/student/tests/pre_skill';
-          else if (!progress.completedLessons || progress.completedLessons.length === 0) nextPath = '/student/lessons';
-          else if (!progress.gameResult) nextPath = '/student/game';
-          else if (!progress.postKnowledgeResult) nextPath = '/student/tests/post_knowledge';
-          else if (!progress.postSkillResult) nextPath = '/student/tests/post_skill';
-        }
-        
-        router.replace(nextPath);
+        router.replace('/student/dashboard');
       }
     });
   }, [router]);
