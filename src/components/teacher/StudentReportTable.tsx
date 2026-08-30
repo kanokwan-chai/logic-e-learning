@@ -15,21 +15,40 @@ export default function StudentReportTable() {
 
   useEffect(() => {
     async function fetchData() {
-      const { data: students, error } = await supabase.from('students').select('*');
+      const { data: students } = await supabase.from('students').select('*').order('last_login_at', { ascending: false });
+      const { data: questProgress } = await supabase.from('quest_progress').select('*');
+      const { data: testResults } = await supabase.from('test_results').select('*');
+      const { data: gameProgress } = await supabase.from('game_progress').select('*');
+
       if (students) {
+        const questMap = new Map((questProgress || []).map(q => [q.student_id, q]));
+        
         const reports = students.map((s) => {
           const p = s.progress_data || {};
+          const q = questMap.get(s.id);
+          
+          const studentTests = (testResults || []).filter(t => t.student_id === s.id);
+          const preK = studentTests.find(t => t.test_type === 'pre_knowledge')?.score ?? p.preKnowledgeResult?.score ?? 0;
+          const preS = studentTests.find(t => t.test_type === 'pre_skill')?.score ?? p.preSkillResult?.score ?? 0;
+          const postK = studentTests.find(t => t.test_type === 'post_knowledge')?.score ?? p.postKnowledgeResult?.score ?? 0;
+          const postS = studentTests.find(t => t.test_type === 'post_skill')?.score ?? p.postSkillResult?.score ?? 0;
+
+          const studentGame = (gameProgress || []).filter(g => g.student_id === s.id);
+          const gScore = studentGame[0]?.points ?? p.gameResult?.score ?? 0;
+
+          const completedLessonsCount = q?.completed_lessons?.length || p.completedLessons?.length || 0;
+
           return {
             id: s.id,
-            student_id: s.number || '-',
+            student_id: s.number > 0 ? s.number : '-',
             full_name: `${s.first_name || ''} ${s.last_name || ''}`,
             class_name: s.class_name || '-',
-            preKnowledge: p.preKnowledgeResult?.score || 0,
-            preSkill: p.preSkillResult?.score || 0,
-            completedLessons: p.completedLessons?.length || 0,
-            gameScore: p.gameResult?.score || 0,
-            postKnowledge: p.postKnowledgeResult?.score || 0,
-            postSkill: p.postSkillResult?.score || 0,
+            preKnowledge: preK,
+            preSkill: preS,
+            completedLessons: completedLessonsCount,
+            gameScore: gScore,
+            postKnowledge: postK,
+            postSkill: postS,
             lastLoginAt: s.last_login_at || '',
           };
         });
