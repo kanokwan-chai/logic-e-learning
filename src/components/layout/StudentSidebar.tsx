@@ -23,8 +23,7 @@ export default function StudentSidebar() {
   const quests = [
     { label: 'ก่อนเรียน (ความรู้)', href: '/student/tests/pre_knowledge', icon: FileCheck2, isLocked: false },
     { label: 'ก่อนเรียน (ทักษะ)', href: '/student/tests/pre_skill', icon: FileCheck2, isLocked: isHydrated && preKnowledgeResult === null },
-    // ล็อกถ้ายังไม่สอบทักษะ แต่ถ้าเคยเรียนไปแล้ว (completedLessons > 0) เปิดได้เสมอ
-    { label: 'บทเรียนตรรกศาสตร์', href: '/student/lessons', icon: BookOpen, isLocked: isHydrated && preSkillResult === null && completedLessons.length === 0 },
+    { label: 'บทเรียนตรรกศาสตร์', href: '/student/lessons', icon: BookOpen, isLocked: false },
     { label: 'Digital Board Game', href: '/student/game', icon: Gamepad2, isLocked: false },
     { label: 'หลังเรียน (ความรู้)', href: '/student/tests/post_knowledge', icon: FileCheck2, isLocked: isHydrated && gameResult === null },
     { label: 'หลังเรียน (ทักษะ)', href: '/student/tests/post_skill', icon: FileCheck2, isLocked: isHydrated && postKnowledgeResult === null },

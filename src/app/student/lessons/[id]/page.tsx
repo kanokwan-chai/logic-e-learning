@@ -10,12 +10,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { BookOpen, Target, CheckCircle2, ArrowLeft, ArrowRight, Video, Presentation, AlertCircle, Loader2 } from 'lucide-react';
+import { BookOpen, Target, CheckCircle2, ArrowLeft, ArrowRight, Video, Presentation, AlertCircle, Loader2, Gamepad2, ExternalLink } from 'lucide-react';
 
 export default function LessonDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const { lessons: allLessons, loading } = useLessons();
-  const { completedLessons, completeLesson, preSkillResult } = useLearningStore();
+  const { completedLessons, completeLesson, preSkillResult, saveGameResult } = useLearningStore();
   const router = useRouter();
 
   // Only consider published lessons for progression
@@ -31,22 +31,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
   const [canFinish, setCanFinish] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!isHydrated) return;
-
-    if (preSkillResult === null && completedLessons.length === 0) {
-      router.push('/student/dashboard');
-      return;
-    }
-
-    // บล็อกเฉพาะกรณีที่บทนี้ยังไม่เคยเรียน และบทก่อนหน้ายังไม่เสร็จ
-    if (!loading && lessonIndex > 0 && !isCompleted) {
-      const prevLesson = lessons[lessonIndex - 1];
-      if (!completedLessons.includes(prevLesson.id)) {
-        router.push('/student/lessons');
-      }
-    }
-  }, [isHydrated, loading, lessonIndex, lessons, completedLessons, isCompleted, router, preSkillResult]);
+  // Allow accessing any published lesson smoothly without strict redirects
 
   useEffect(() => {
     if (isCompleted) {
@@ -79,8 +64,34 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
   const googleName = googleUser?.user_metadata?.full_name || googleUser?.user_metadata?.name || googleUser?.email?.split('@')[0] || 'นักเรียน';
   const googleId = googleUser?.id || 's-101';
 
+  // Listen to BOARD_GAME_COMPLETED event from embedded game
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'BOARD_GAME_COMPLETED') {
+        const payload = event.data.payload;
+        saveGameResult({
+          id: `game-${Date.now()}`,
+          user_id: googleId,
+          score: payload.score || 0,
+          time_spent_sec: payload.timeSpent || 600,
+          attempts: payload.attempts || 1,
+          stages_cleared: payload.stagesCleared || 5,
+          created_at: new Date().toISOString(),
+        });
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [googleId, saveGameResult]);
+
   const handleFinishLesson = () => {
     if (lesson) completeLesson(lesson.id);
+  };
+
+  const isBoardGameUrl = (url: string) => {
+    if (!url) return false;
+    return url.includes('digital-board-game') || url.includes('board-game');
   };
 
   const getEmbedUrl = (url: string) => {
@@ -99,8 +110,9 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
       const videoId = url.split('youtu.be/')[1].split('?')[0];
       return `https://www.youtube.com/embed/${videoId}`;
     }
-    if (url.includes('digital-board-game-eight.vercel.app')) {
-      return `${url.split('?')[0]}?student_id=${googleId}&name=${encodeURIComponent(googleName)}&autoLogin=true`;
+    if (isBoardGameUrl(url)) {
+      const cleanUrl = url.split('?')[0].replace(/\/$/, '');
+      return `${cleanUrl}/?student_id=${encodeURIComponent(googleId)}&name=${encodeURIComponent(googleName)}&autoLogin=true`;
     }
     return url;
   };
@@ -134,6 +146,8 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
       </div>
     );
   }
+
+  const isGameMedia = lesson.video_url ? isBoardGameUrl(lesson.video_url) : false;
 
   return (
     <div className="flex flex-col md:flex-row gap-6">
@@ -193,10 +207,30 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
         {/* 3. Video / Audio / Game */}
         {lesson.video_url && (
           <div className="p-6 rounded-3xl bg-white border border-slate-100 shadow-soft-sm space-y-3">
-            <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
-              <Video className="w-4 h-4 text-rose-500" /> 3. สื่อประกอบการเรียนรู้ (วิดีโอ/เสียง/เกม)
-            </h3>
-            <div className={`w-full ${lesson.video_url.includes('digital-board-game') ? 'h-[650px]' : 'aspect-video'} rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 shadow-soft-sm flex items-center justify-center`}>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
+                {isGameMedia ? (
+                  <>
+                    <Gamepad2 className="w-4 h-4 text-amber-500" /> 3. ภารกิจเกมกระดานตรรกศาสตร์ดิจิทัล (Digital Board Game)
+                  </>
+                ) : (
+                  <>
+                    <Video className="w-4 h-4 text-rose-500" /> 3. สื่อประกอบการเรียนรู้ (วิดีโอ/เสียง/เกม)
+                  </>
+                )}
+              </h3>
+              {isGameMedia && (
+                <button
+                  type="button"
+                  onClick={() => window.open(getEmbedUrl(lesson.video_url), 'board_game_window')}
+                  className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+                >
+                  เปิดเล่นในหน้าต่างใหม่ <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            <div className={`w-full ${isGameMedia ? 'h-[500px] sm:h-[650px] md:h-[700px]' : 'aspect-video'} rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 shadow-soft-sm flex items-center justify-center relative`}>
               {lesson.video_url.toLowerCase().endsWith('.mp3') || lesson.video_url.toLowerCase().endsWith('.wav') ? (
                 <div className="w-full p-8 bg-slate-800 h-full flex flex-col items-center justify-center space-y-4">
                   <Video className="w-12 h-12 text-slate-400" />
@@ -207,9 +241,9 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
               ) : (
                 <iframe
                   src={getEmbedUrl(lesson.video_url)}
-                  title="สื่อประกอบการเรียนรู้"
+                  title={isGameMedia ? 'Digital Board Game' : 'สื่อประกอบการเรียนรู้'}
                   className="w-full h-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                   allowFullScreen
                 />
               )}

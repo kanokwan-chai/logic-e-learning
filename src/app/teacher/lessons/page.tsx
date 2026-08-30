@@ -6,7 +6,7 @@ import { CMSLesson } from '@/lib/store/useContentStore';
 import { useLessons } from '@/lib/hooks/useSupabaseContent';
 import {
   BookMarked, Plus, Edit3, Trash2, Eye, EyeOff, Clock,
-  Video, Presentation, HelpCircle, CheckCircle2, Info, X, Save, Loader2
+  Video, Presentation, HelpCircle, CheckCircle2, Info, X, Save, Loader2, Gamepad2
 } from 'lucide-react';
 
 // ─── Lesson Form Modal ────────────────────────────────────────────────────────
@@ -125,12 +125,12 @@ function LessonModal({
 
           <div>
             <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5 mb-1">
-              <Video className="w-3.5 h-3.5 text-rose-500" /> ลิงก์วิดีโอ (YouTube Embed URL)
+              <Video className="w-3.5 h-3.5 text-rose-500" /> สื่อประกอบการสอน (วิดีโอ YouTube / MP3 / Digital Board Game)
             </label>
             <input value={form.video_url} onChange={(e) => set('video_url', e.target.value)}
-              placeholder="https://www.youtube.com/embed/VIDEO_ID"
+              placeholder="https://www.youtube.com/watch?v=... หรือ https://digital-board-game-eight.vercel.app"
               className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 font-mono" />
-            <p className="text-[10px] text-slate-400 mt-1">YouTube → Share → Embed → copy URL ใน src=&quot;...&quot;</p>
+            <p className="text-[10px] text-slate-400 mt-1">สามารถใส่ลิงก์ YouTube, ไฟล์เสียง, หรือลิงก์เกมกระดานดิจิทัลได้</p>
           </div>
 
           <div>
@@ -248,7 +248,17 @@ export default function TeacherLessonsPage() {
               <h3 className="font-extrabold text-base text-slate-800">{les.title}</h3>
               {les.description && <p className="text-xs text-slate-600 leading-relaxed">{les.description}</p>}
               <div className="flex items-center gap-2 flex-wrap">
-                {les.video_url && <span className="px-2.5 py-1 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold flex items-center gap-1"><Video className="w-3 h-3" /> วิดีโอ</span>}
+                {les.video_url && (
+                  les.video_url.includes('digital-board-game') || les.video_url.includes('board-game') ? (
+                    <span className="px-2.5 py-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold flex items-center gap-1">
+                      <Gamepad2 className="w-3 h-3" /> บอร์ดเกม
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-1 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold flex items-center gap-1">
+                      <Video className="w-3 h-3" /> วิดีโอ
+                    </span>
+                  )
+                )}
                 {les.slide_url && <span className="px-2.5 py-1 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold flex items-center gap-1"><Presentation className="w-3 h-3" /> สไลด์</span>}
               </div>
             </div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import StudentSidebar from '@/components/layout/StudentSidebar';
 import { useLearningStore } from '@/lib/store/useLearningStore';
 import { useStudentAuth } from '@/lib/hooks/useStudentAuth';
-import { Gamepad2, Sparkles, CheckCircle2, HelpCircle, Save, ExternalLink } from 'lucide-react';
+import { Gamepad2, Sparkles, CheckCircle2, HelpCircle, Save, ExternalLink, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
@@ -12,10 +12,12 @@ import type { User } from '@supabase/supabase-js';
 export default function DigitalBoardGamePage() {
   const { gameResult, saveGameResult } = useLearningStore();
   const [googleUser, setGoogleUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) setGoogleUser(user);
+      setAuthLoading(false);
     });
   }, []);
 
@@ -44,7 +46,7 @@ export default function DigitalBoardGamePage() {
         const payload = event.data.payload;
         saveGameResult({
           id: `game-${Date.now()}`,
-          user_id: 's-101',
+          user_id: googleId,
           score: payload.score || 0,
           time_spent_sec: payload.timeSpent || 600,
           attempts: payload.attempts || 1,
@@ -55,15 +57,25 @@ export default function DigitalBoardGamePage() {
         setScore(payload.score || 0);
         setStages(payload.stagesCleared || 5);
         setAttempts(payload.attempts || 1);
-        
-
       }
     };
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [saveGameResult]);
+  }, [googleId, saveGameResult]);
 
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen md:flex md:h-screen bg-[#F8FAFC] md:overflow-hidden font-sans">
+        <StudentSidebar />
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="text-sm font-bold text-slate-500">กำลังเชื่อมต่อกับระบบเกม...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col md:flex-row gap-6">

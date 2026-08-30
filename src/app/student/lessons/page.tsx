@@ -17,16 +17,6 @@ export default function LessonsListPage() {
   const router = useRouter();
   const [showLockedAlert, setShowLockedAlert] = useState(false);
 
-  useEffect(() => {
-    // รอให้ข้อมูลจาก Supabase โหลดเสร็จก่อนค่อย redirect
-    if (!isHydrated) return;
-    
-    // ถ้ายังไม่สอบ pre-skill และยังไม่เคยเรียนบทไหนเลย ให้เด้งออก
-    if (preSkillResult === null && completedLessons.length === 0) {
-      router.push('/student/dashboard');
-    }
-  }, [isHydrated, preSkillResult, completedLessons.length, router]);
-
   // Only show published lessons to students
   const lessons = allLessons.filter((l) => l.published);
 
@@ -61,16 +51,13 @@ export default function LessonsListPage() {
 
         {/* Lesson List */}
         <div className="grid grid-cols-1 gap-4">
-          {lessons.map((lesson, idx) => {
+          {lessons.map((lesson) => {
             const isCompleted = completedLessons.includes(lesson.id);
-            const isLocked = idx > 0 && !completedLessons.includes(lessons[idx - 1].id);
 
             return (
               <div
                 key={lesson.id}
-                className={`bento-card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
-                  isLocked ? 'opacity-60 bg-slate-50' : ''
-                }`}
+                className="bento-card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
               >
                 <div className="space-y-2 flex-1">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -88,24 +75,14 @@ export default function LessonsListPage() {
                 </div>
 
                 <Link
-                  href={isLocked ? '#' : `/student/lessons/${lesson.id}`}
-                  onClick={(e) => {
-                    if (isLocked) {
-                      e.preventDefault();
-                      setShowLockedAlert(true);
-                    }
-                  }}
+                  href={`/student/lessons/${lesson.id}`}
                   className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all shrink-0 flex items-center gap-2 ${
-                    isLocked
-                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
-                      : isCompleted
+                    isCompleted
                       ? 'btn-minimal-white'
                       : 'btn-minimal-primary'
                   }`}
                 >
-                  {isLocked ? (
-                    <><Lock className="w-4 h-4" /> ล็อกอยู่</>
-                  ) : isCompleted ? (
+                  {isCompleted ? (
                     <>ทบทวนบทเรียน <ArrowRight className="w-4 h-4" /></>
                   ) : (
                     <>เข้าสู่บทเรียน <ArrowRight className="w-4 h-4" /></>
