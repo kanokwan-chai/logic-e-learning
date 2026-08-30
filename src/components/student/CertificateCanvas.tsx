@@ -63,8 +63,17 @@ export default function CertificateCanvas({
       const yOffset = (pdfHeight - imgHeight * ratio) / 2;
 
       pdf.addImage(imgData, 'JPEG', xOffset, yOffset, imgWidth * ratio, imgHeight * ratio);
-      // ใช้ชื่อไฟล์ ASCII เพื่อให้แสดงผลถูกต้องบน Windows
-      pdf.save(`Certificate_LogicELearning_${String(studentId).slice(0, 8)}.pdf`);
+
+      // สร้าง Blob ที่มี MIME type เป็น application/pdf เพื่อให้ browser รู้จักและดาวน์โหลดเป็น .pdf จริงๆ
+      const pdfBlob = pdf.output('blob');
+      const blobUrl = URL.createObjectURL(new Blob([pdfBlob], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = 'Certificate_LogicELearning.pdf';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
     } catch (err) {
       console.error('PDF export error:', err);
       alert('เกิดข้อผิดพลาดในการสร้าง PDF กรุณาลองใหม่อีกครั้ง');
