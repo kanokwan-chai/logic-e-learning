@@ -1,9 +1,63 @@
 -- ══════════════════════════════════════════════════════════
--- Logic E-Learning — Supabase Schema Setup
--- วาง SQL นี้ใน Supabase > SQL Editor > New Query > Run
+-- Logic E-Learning — Supabase Normalized Schema
 -- ══════════════════════════════════════════════════════════
 
--- 1. ตารางบทเรียน (Lessons)
+-- 1. ตารางนักเรียน (Students)
+create table if not exists students (
+  id         text primary key,
+  email      text,
+  first_name text not null default 'นักเรียน',
+  last_name  text not null default '',
+  number     integer not null default 0,
+  class_name text not null default 'ปวช.1 ธดท.',
+  current_activity text default 'ออนไลน์อยู่ในระบบ',
+  last_login_at timestamptz default now(),
+  created_at timestamptz default now()
+);
+
+-- 2. ตารางผลแบบทดสอบ (Test Results)
+create table if not exists test_results (
+  id          text primary key default gen_random_uuid()::text,
+  student_id  text references students(id) on delete cascade,
+  test_type   text not null check (test_type in ('pre_knowledge','pre_skill','post_knowledge','post_skill')),
+  score       numeric not null default 0,
+  max_score   numeric not null default 20,
+  answers     jsonb default '[]'::jsonb,
+  time_spent_sec integer default 0,
+  completed_at timestamptz default now()
+);
+
+-- 3. ตารางคะแนนเกม (Game Progress)
+create table if not exists game_progress (
+  id             text primary key default gen_random_uuid()::text,
+  student_id     text references students(id) on delete cascade,
+  episode        integer default 1,
+  points         numeric not null default 0,
+  stages_cleared integer default 5,
+  attempts       integer default 1,
+  time_spent_sec integer default 600,
+  completed_at   timestamptz default now()
+);
+
+-- 4. ตารางแบบประเมินความพึงพอใจ (Survey Responses)
+create table if not exists survey_responses (
+  id           text primary key default gen_random_uuid()::text,
+  student_id   text references students(id) on delete cascade,
+  answers      jsonb default '{}'::jsonb,
+  submitted_at timestamptz default now()
+);
+
+-- 5. ตารางความก้าวหน้าเควสและเวลาเรียน (Quest Progress)
+create table if not exists quest_progress (
+  student_id        text primary key references students(id) on delete cascade,
+  total_minutes     integer default 0,
+  quests_completed  integer default 0,
+  completed_lessons text[] default '{}',
+  unlocked_badges   text[] default '{}',
+  updated_at        timestamptz default now()
+);
+
+-- 6. ตารางบทเรียน (Lessons)
 create table if not exists lessons (
   id           text primary key,
   chapter_number integer not null,
@@ -18,7 +72,7 @@ create table if not exists lessons (
   created_at   timestamptz default now()
 );
 
--- 2. ตารางข้อสอบ (Questions)
+-- 7. ตารางข้อสอบ (Questions)
 create table if not exists questions (
   id                   text primary key,
   chapter_number       integer not null,
@@ -26,26 +80,12 @@ create table if not exists questions (
   options              text[] not null,
   correct_option_index integer not null,
   difficulty           text default 'medium',
-  test_type            text default 'pre_knowledge', -- 'pre_knowledge', 'pre_skill', 'post_knowledge', 'post_skill'
+  test_type            text default 'pre_knowledge',
   explanation          text default '',
   created_at           timestamptz default now()
 );
 
--- 3. ตารางโจทย์ Lab (Labs)
-create table if not exists labs (
-  id            text primary key,
-  lab_code      text not null,
-  title         text not null,
-  module_type   text default 'scenario',
-  difficulty    text default 'easy',
-  scenario_text text not null,
-  options       text[] not null,
-  correct_index integer not null,
-  explanation   text default '',
-  created_at    timestamptz default now()
-);
-
--- 4. ตารางประกาศ (Announcements)
+-- 8. ตารางประกาศ (Announcements)
 create table if not exists announcements (
   id           text primary key,
   title        text not null,
@@ -54,92 +94,37 @@ create table if not exists announcements (
   created_at   timestamptz default now()
 );
 
--- 5. ตารางนักเรียน (Students)
-create table if not exists students (
-  id         text primary key,
-  first_name text not null,
-  last_name  text not null,
-  number     integer not null,
-  class_name text not null,
-  created_at timestamptz default now()
-);
-
--- 6. ตารางความก้าวหน้า (Student Progress)
-create table if not exists student_progress (
-  id                   text primary key default gen_random_uuid()::text,
-  student_id           text references students(id) on delete cascade,
-  completed_lessons    text[] default '{}',
-  pre_knowledge_score        integer,
-  pre_knowledge_total        integer,
-  pre_knowledge_completed_at timestamptz,
-  pre_skill_score            integer,
-  pre_skill_total            integer,
-  pre_skill_completed_at     timestamptz,
-  post_knowledge_score       integer,
-  post_knowledge_total       integer,
-  post_knowledge_completed_at timestamptz,
-  post_skill_score           integer,
-  post_skill_total           integer,
-  post_skill_completed_at    timestamptz,
-  lab_completed        boolean default false,
-  game_completed       boolean default false,
-  updated_at           timestamptz default now()
-);
-
--- ══ เปิด Row Level Security (RLS) ══
+-- ══ เปิด Row Level Security (RLS) & Policies ══
+alter table students enable row level security;
+alter table test_results enable row level security;
+alter table game_progress enable row level security;
+alter table survey_responses enable row level security;
+alter table quest_progress enable row level security;
 alter table lessons enable row level security;
 alter table questions enable row level security;
-alter table labs enable row level security;
 alter table announcements enable row level security;
-alter table students enable row level security;
-alter table student_progress enable row level security;
 
--- เพิ่มคอลัมน์ใหม่สำหรับระบบติดตามความก้าวหน้า
-alter table students add column if not exists progress_data jsonb;
-alter table students add column if not exists current_activity text;
-alter table students add column if not exists last_login_at timestamptz;
+-- Policy: อ่าน-เขียนได้แบบสมบูรณ์
+drop policy if exists "allow all students" on students;
+create policy "allow all students" on students for all using (true) with check (true);
 
--- ══ Policy: ให้ anon อ่าน-เขียนได้ทุกตาราง (ปรับได้ภายหลัง) ══
-drop policy if exists "allow all" on lessons;
-create policy "allow all" on lessons for all using (true) with check (true);
+drop policy if exists "allow all test_results" on test_results;
+create policy "allow all test_results" on test_results for all using (true) with check (true);
 
-drop policy if exists "allow all" on questions;
-create policy "allow all" on questions for all using (true) with check (true);
+drop policy if exists "allow all game_progress" on game_progress;
+create policy "allow all game_progress" on game_progress for all using (true) with check (true);
 
-drop policy if exists "allow all" on labs;
-create policy "allow all" on labs for all using (true) with check (true);
+drop policy if exists "allow all survey_responses" on survey_responses;
+create policy "allow all survey_responses" on survey_responses for all using (true) with check (true);
 
-drop policy if exists "allow all" on announcements;
-create policy "allow all" on announcements for all using (true) with check (true);
+drop policy if exists "allow all quest_progress" on quest_progress;
+create policy "allow all quest_progress" on quest_progress for all using (true) with check (true);
 
-drop policy if exists "allow all" on students;
-create policy "allow all" on students for all using (true) with check (true);
+drop policy if exists "allow all lessons" on lessons;
+create policy "allow all lessons" on lessons for all using (true) with check (true);
 
-drop policy if exists "allow all" on student_progress;
-create policy "allow all" on student_progress for all using (true) with check (true);
+drop policy if exists "allow all questions" on questions;
+create policy "allow all questions" on questions for all using (true) with check (true);
 
--- ----------------------------------------------------------
--- MIGRATION SCRIPT (???????????????????????????????????????????)
--- ----------------------------------------------------------
-
-alter table questions add column if not exists test_type text default 'pre_knowledge';
-
-alter table student_progress add column if not exists pre_knowledge_score integer;
-alter table student_progress add column if not exists pre_knowledge_total integer;
-alter table student_progress add column if not exists pre_knowledge_completed_at timestamptz;
-
-alter table student_progress add column if not exists pre_skill_score integer;
-alter table student_progress add column if not exists pre_skill_total integer;
-alter table student_progress add column if not exists pre_skill_completed_at timestamptz;
-
-alter table student_progress add column if not exists post_knowledge_score integer;
-alter table student_progress add column if not exists post_knowledge_total integer;
-alter table student_progress add column if not exists post_knowledge_completed_at timestamptz;
-
-alter table student_progress add column if not exists post_skill_score integer;
-alter table student_progress add column if not exists post_skill_total integer;
-alter table student_progress add column if not exists post_skill_completed_at timestamptz;
-
--- (Optional) ?????????????????
--- alter table student_progress drop column pretest_score, drop column pretest_total, drop column pretest_completed_at, drop column posttest_score, drop column posttest_total, drop column posttest_completed_at;
-
+drop policy if exists "allow all announcements" on announcements;
+create policy "allow all announcements" on announcements for all using (true) with check (true);

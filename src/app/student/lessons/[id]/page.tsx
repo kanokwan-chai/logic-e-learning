@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { saveLessonCompletionToDB } from '@/lib/supabase/db';
 import { BookOpen, Target, CheckCircle2, ArrowLeft, ArrowRight, Video, Presentation, AlertCircle, Loader2, Gamepad2, ExternalLink } from 'lucide-react';
 
 export default function LessonDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -90,12 +91,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
       completeLesson(lesson.id);
       const { data: { user } } = await supabase.auth.getUser();
       if (user?.id) {
-        const currentState = useLearningStore.getState();
-        const updatedLessons = Array.from(new Set([...currentState.completedLessons, lesson.id]));
-        await supabase.from('students').update({
-          progress_data: { ...currentState, completedLessons: updatedLessons },
-          last_login_at: new Date().toISOString(),
-        }).eq('id', user.id);
+        await saveLessonCompletionToDB(user.id, lesson.id);
       }
     }
   };

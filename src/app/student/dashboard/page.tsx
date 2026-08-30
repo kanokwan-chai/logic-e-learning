@@ -6,6 +6,7 @@ import { useLearningStore } from '@/lib/store/useLearningStore';
 import { useLessons } from '@/lib/hooks/useSupabaseContent';
 import { useStudentAuth } from '@/lib/hooks/useStudentAuth';
 import { supabase } from '@/lib/supabase/client';
+import { fetchStudentDashboardData, DashboardStudentData } from '@/lib/supabase/db';
 import Link from 'next/link';
 import {
   BookOpen,
@@ -33,43 +34,59 @@ export default function StudentDashboardPage() {
   
   const { isHydrated } = useStudentAuth();
   const { completedLessons, preKnowledgeResult, preSkillResult, postKnowledgeResult, postSkillResult, gameResult } = useLearningStore();
+  const [dbData, setDbData] = useState<DashboardStudentData | null>(null);
 
   const { lessons: allLessons, loading } = useLessons();
   const publishedLessons = allLessons.filter((l) => l.published);
-  const completionPercent = publishedLessons.length > 0
-    ? Math.round((completedLessons.filter((id) => publishedLessons.some((l) => l.id === id)).length / publishedLessons.length) * 100)
-    : 0;
 
   useEffect(() => {
     async function loadUser() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return; // middleware จัดการ redirect แล้ว
+      if (!user) return;
       const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'นักเรียน';
       setDisplayName(name);
+
       const { data: student } = await supabase
         .from('students')
         .select('number, class_name')
         .eq('id', user.id)
         .single();
+
       if (student) {
         setClassName(student.class_name);
         setSeatNumber(String(student.number));
       }
+
       setAvatarUrl(user.user_metadata?.custom_avatar || user.user_metadata?.avatar_url || user.user_metadata?.picture || '/images/student-avatar.jpg');
+
+      const data = await fetchStudentDashboardData(user.id);
+      setDbData(data);
+
       setIsUserLoading(false);
     }
     loadUser();
   }, []);
 
-  const totalTimeSpent = useLearningStore((state) => state.totalStudyTimeSec);
+  const preKnowledgeScore = dbData?.preKnowledgeScore ?? preKnowledgeResult?.score ?? null;
+  const preSkillScore = dbData?.preSkillScore ?? preSkillResult?.score ?? null;
+  const postKnowledgeScore = dbData?.postKnowledgeScore ?? postKnowledgeResult?.score ?? null;
+  const postSkillScore = dbData?.postSkillScore ?? postSkillResult?.score ?? null;
+  const gameScore = dbData?.gameScore ?? gameResult?.score ?? null;
+  const currentCompletedLessons = dbData?.completedLessons?.length ? dbData.completedLessons : completedLessons;
+
+  const completionPercent = publishedLessons.length > 0
+    ? Math.round((currentCompletedLessons.filter((id: string) => publishedLessons.some((l) => l.id === id)).length / publishedLessons.length) * 100)
+    : 0;
+
+  const totalTimeSpent = dbData?.totalMinutes ? dbData.totalMinutes * 60 : useLearningStore.getState().totalStudyTimeSec;
 
   const quests = [
-    { title: 'ก่อนเรียน (ความรู้)', isDone: preKnowledgeResult !== null, href: '/student/tests/pre_knowledge', isLocked: false },
-    { title: 'ก่อนเรียน (ทักษะ)', isDone: preSkillResult !== null, href: '/student/tests/pre_skill', isLocked: preKnowledgeResult === null },
-    { title: 'บทเรียนตรรกศาสตร์', isDone: completedLessons.length >= 1, href: '/student/lessons', isLocked: false },
-    { title: 'Digital Board Game Mission', isDone: gameResult !== null, href: '/student/game', isLocked: false },
-    { title: 'หลังเรียน (ความรู้)', isDone: postKnowledgeResult !== null, href: '/student/tests/post_knowledge', isLocked: gameResult === null },
-    { title: 'หลังเรียน (ทักษะ)', isDone: postSkillResult !== null, href: '/student/tests/post_skill', isLocked: postKnowledgeResult === null },
+    { title: 'ก่อนเรียน (ความรู้)', isDone: preKnowledgeScore !== null, href: '/student/tests/pre_knowledge', isLocked: false },
+    { title: 'ก่อนเรียน (ทักษะ)', isDone: preSkillScore !== null, href: '/student/tests/pre_skill', isLocked: preKnowledgeScore === null },
+    { title: 'บทเรียนตรรกศาสตร์', isDone: currentCompletedLessons.length >= 1, href: '/student/lessons', isLocked: false },
+    { title: 'Digital Board Game Mission', isDone: gameScore !== null, href: '/student/game', isLocked: false },
+    { title: 'หลังเรียน (ความรู้)', isDone: postKnowledgeScore !== null, href: '/student/tests/post_knowledge', isLocked: gameScore === null },
+    { title: 'หลังเรียน (ทักษะ)', isDone: postSkillScore !== null, href: '/student/tests/post_skill', isLocked: postKnowledgeScore === null },
   ];
 
   const completedQuestsCount = quests.filter((q) => q.isDone).length;
@@ -159,7 +176,7 @@ export default function StudentDashboardPage() {
                   <h4 className="font-bold text-[#16A34A] text-xs mb-0.5">Pre — ความรู้</h4>
                   <p className="text-[9px] text-slate-500 font-medium mb-2">ก่อนเรียน (Knowledge)</p>
                   <div className="bg-white px-2 py-1.5 rounded-lg text-[#16A34A] font-black text-xs w-full border border-[#DCFCE7]">
-                    {preKnowledgeResult ? `${preKnowledgeResult.score}/20` : '—'}
+                    {preKnowledgeScore !== null ? `${preKnowledgeScore}/20` : '—'}
                   </div>
                 </div>
 
@@ -169,7 +186,7 @@ export default function StudentDashboardPage() {
                   <h4 className="font-bold text-[#0D9488] text-xs mb-0.5">Pre — ทักษะ</h4>
                   <p className="text-[9px] text-slate-500 font-medium mb-2">ก่อนเรียน (Skill)</p>
                   <div className="bg-white px-2 py-1.5 rounded-lg text-[#0D9488] font-black text-xs w-full border border-[#CCFBF1]">
-                    {preSkillResult ? `${preSkillResult.score}/20` : '—'}
+                    {preSkillScore !== null ? `${preSkillScore}/20` : '—'}
                   </div>
                 </div>
 
@@ -179,7 +196,7 @@ export default function StudentDashboardPage() {
                   <h4 className="font-bold text-[#EA580C] text-xs mb-0.5">Post — ความรู้</h4>
                   <p className="text-[9px] text-slate-500 font-medium mb-2">หลังเรียน (Knowledge)</p>
                   <div className="bg-white px-2 py-1.5 rounded-lg text-[#EA580C] font-black text-xs w-full border border-[#FFEDD5]">
-                    {postKnowledgeResult ? `${postKnowledgeResult.score}/20` : '—'}
+                    {postKnowledgeScore !== null ? `${postKnowledgeScore}/20` : '—'}
                   </div>
                 </div>
 
@@ -189,7 +206,7 @@ export default function StudentDashboardPage() {
                   <h4 className="font-bold text-[#E11D48] text-xs mb-0.5">Post — ทักษะ</h4>
                   <p className="text-[9px] text-slate-500 font-medium mb-2">หลังเรียน (Skill)</p>
                   <div className="bg-white px-2 py-1.5 rounded-lg text-[#E11D48] font-black text-xs w-full border border-[#FFE4E6]">
-                    {postSkillResult ? `${postSkillResult.score}/20` : '—'}
+                    {postSkillScore !== null ? `${postSkillScore}/20` : '—'}
                   </div>
                 </div>
 
@@ -199,7 +216,7 @@ export default function StudentDashboardPage() {
                   <h4 className="font-bold text-[#9333EA] text-xs mb-0.5">บอร์ดเกม</h4>
                   <p className="text-[9px] text-slate-500 font-medium mb-2">แต้มจากการเล่น</p>
                   <div className="bg-white px-2 py-1.5 rounded-lg text-[#9333EA] font-black text-xs w-full border border-[#F3E8FF]">
-                    {gameResult ? `${gameResult.score}` : '—'}
+                    {gameScore !== null ? `${gameScore}` : '—'}
                   </div>
                 </div>
 
@@ -209,7 +226,7 @@ export default function StudentDashboardPage() {
                   <h4 className="font-bold text-[#2563EB] text-xs mb-0.5">เวลา / เควส</h4>
                   <p className="text-[9px] text-slate-500 font-medium mb-2">เวลาสะสม / ภารกิจ</p>
                   <div className="bg-white px-2 py-1.5 rounded-lg text-[#2563EB] font-black text-xs w-full border border-[#DBEAFE]">
-                    {Math.floor(totalTimeSpent / 60)} นาที · {completedQuestsCount}/{quests.length}
+                    {Math.floor(totalTimeSpent / 60)} นาที · {dbData?.questsCompleted ?? completedQuestsCount}/{quests.length}
                   </div>
                 </div>
 

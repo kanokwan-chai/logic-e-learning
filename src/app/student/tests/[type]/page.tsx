@@ -9,6 +9,7 @@ import { FileCheck2, Clock, CheckCircle, ArrowRight, Lock, Loader2 } from 'lucid
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
+import { saveTestResultToDB } from '@/lib/supabase/db';
 
 const testTitles = {
   pre_knowledge: 'แบบทดสอบก่อนเรียน (วัดความรู้)',
@@ -137,9 +138,10 @@ export default function TestPage() {
     });
 
     const { data: { user } } = await supabase.auth.getUser();
+    const studentId = user?.id || 's-001';
     const resultObj = {
       id: `${testType}-${Date.now()}`,
-      user_id: user?.id || 's-001',
+      user_id: studentId,
       score: calculatedScore,
       total_questions: questions.length,
       answers: userAnswers.map((a) => a ?? -1),
@@ -150,20 +152,9 @@ export default function TestPage() {
     saveTestResult(testType, resultObj);
     savePartialTestAnswers(testType, []);
 
-    // บันทึกตรงเข้า Supabase ทันที ป้องกันการสูญหายหรือดีเลย์
+    // บันทึกตรงเข้าฐานข้อมูล Supabase ทันที
     if (user?.id) {
-      const currentState = useLearningStore.getState();
-      const fieldMap: Record<string, string> = {
-        pre_knowledge: 'preKnowledgeResult',
-        pre_skill: 'preSkillResult',
-        post_knowledge: 'postKnowledgeResult',
-        post_skill: 'postSkillResult',
-      };
-      const key = fieldMap[testType];
-      await supabase.from('students').update({
-        progress_data: { ...currentState, [key]: resultObj },
-        last_login_at: new Date().toISOString(),
-      }).eq('id', user.id);
+      await saveTestResultToDB(user.id, testType as any, resultObj);
     }
   };
 

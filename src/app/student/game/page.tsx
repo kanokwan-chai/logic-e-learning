@@ -7,6 +7,7 @@ import { useStudentAuth } from '@/lib/hooks/useStudentAuth';
 import { Gamepad2, Sparkles, CheckCircle2, HelpCircle, Save, ExternalLink } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
+import { saveGameResultToDB } from '@/lib/supabase/db';
 import type { User } from '@supabase/supabase-js';
 
 export default function DigitalBoardGamePage() {
@@ -47,11 +48,7 @@ export default function DigitalBoardGamePage() {
     const { data: { user } } = await supabase.auth.getUser();
     const uid = user?.id || googleId;
     if (uid && uid !== 's-101') {
-      const currentState = useLearningStore.getState();
-      await supabase.from('students').update({
-        progress_data: { ...currentState, gameResult: gameObj },
-        last_login_at: new Date().toISOString(),
-      }).eq('id', uid);
+      await saveGameResultToDB(uid, gameObj);
     }
   };
 

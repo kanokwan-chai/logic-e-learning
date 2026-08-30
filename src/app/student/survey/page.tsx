@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import StudentSidebar from '@/components/layout/StudentSidebar';
 import { Star, Sparkles, Send, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import { saveSurveyToDB } from '@/lib/supabase/db';
 import { useLearningStore } from '@/lib/store/useLearningStore';
 import Link from 'next/link';
 
@@ -61,19 +62,9 @@ export default function StudentSurveyPage() {
 
     setIsSubmitting(true);
     const user_id = studentProfile.id;
-    const student_name = `${studentProfile.first_name} ${studentProfile.last_name}`;
 
-    const { error } = await supabase.from('survey_responses').insert([{
-      user_id,
-      student_name,
-      responses: answers
-    }]);
-
-    if (!error) {
-      completeSurvey(); // Update Zustand store to unlock certificate
-    } else {
-      alert('เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
-    }
+    await saveSurveyToDB(user_id, answers);
+    completeSurvey();
     setIsSubmitting(false);
   };
 
