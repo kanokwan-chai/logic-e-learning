@@ -171,64 +171,64 @@ export default function StudentDashboardPage() {
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
 
                 {/* Pre ความรู้: Green */}
-                <div className="bg-[#F0FDF4] border border-[#DCFCE7] rounded-3xl p-3 sm:p-4 flex flex-col items-center text-center shadow-sm hover:-translate-y-1 transition-transform">
-                  <div className="w-12 h-12 rounded-full bg-white text-[#16A34A] text-2xl flex items-center justify-center shadow-sm mb-2">📝</div>
+                <Link href="/student/tests/pre_knowledge" className="bg-[#F0FDF4] border border-[#DCFCE7] rounded-3xl p-3 sm:p-4 flex flex-col items-center text-center shadow-sm hover:-translate-y-1 transition-transform cursor-pointer group">
+                  <div className="w-12 h-12 rounded-full bg-white text-[#16A34A] text-2xl flex items-center justify-center shadow-sm mb-2 group-hover:scale-110 transition-transform">📝</div>
                   <h4 className="font-bold text-[#16A34A] text-xs mb-0.5">Pre — ความรู้</h4>
                   <p className="text-[9px] text-slate-500 font-medium mb-2">ก่อนเรียน (Knowledge)</p>
                   <div className="bg-white px-2 py-1.5 rounded-lg text-[#16A34A] font-black text-xs w-full border border-[#DCFCE7]">
                     {preKnowledgeScore !== null ? `${preKnowledgeScore}/20` : '—'}
                   </div>
-                </div>
+                </Link>
 
                 {/* Pre ทักษะ: Teal */}
-                <div className="bg-[#F0FDFA] border border-[#CCFBF1] rounded-3xl p-3 sm:p-4 flex flex-col items-center text-center shadow-sm hover:-translate-y-1 transition-transform">
-                  <div className="w-12 h-12 rounded-full bg-white text-[#0D9488] text-2xl flex items-center justify-center shadow-sm mb-2">✏️</div>
+                <Link href="/student/tests/pre_skill" className="bg-[#F0FDFA] border border-[#CCFBF1] rounded-3xl p-3 sm:p-4 flex flex-col items-center text-center shadow-sm hover:-translate-y-1 transition-transform cursor-pointer group">
+                  <div className="w-12 h-12 rounded-full bg-white text-[#0D9488] text-2xl flex items-center justify-center shadow-sm mb-2 group-hover:scale-110 transition-transform">✏️</div>
                   <h4 className="font-bold text-[#0D9488] text-xs mb-0.5">Pre — ทักษะ</h4>
                   <p className="text-[9px] text-slate-500 font-medium mb-2">ก่อนเรียน (Skill)</p>
                   <div className="bg-white px-2 py-1.5 rounded-lg text-[#0D9488] font-black text-xs w-full border border-[#CCFBF1]">
                     {preSkillScore !== null ? `${preSkillScore}/20` : '—'}
                   </div>
-                </div>
+                </Link>
 
                 {/* Post ความรู้: Orange */}
-                <div className="bg-[#FFF7ED] border border-[#FFEDD5] rounded-3xl p-3 sm:p-4 flex flex-col items-center text-center shadow-sm hover:-translate-y-1 transition-transform">
-                  <div className="w-12 h-12 rounded-full bg-white text-[#EA580C] text-2xl flex items-center justify-center shadow-sm mb-2">🏆</div>
+                <Link href="/student/tests/post_knowledge" className="bg-[#FFF7ED] border border-[#FFEDD5] rounded-3xl p-3 sm:p-4 flex flex-col items-center text-center shadow-sm hover:-translate-y-1 transition-transform cursor-pointer group">
+                  <div className="w-12 h-12 rounded-full bg-white text-[#EA580C] text-2xl flex items-center justify-center shadow-sm mb-2 group-hover:scale-110 transition-transform">🏆</div>
                   <h4 className="font-bold text-[#EA580C] text-xs mb-0.5">Post — ความรู้</h4>
                   <p className="text-[9px] text-slate-500 font-medium mb-2">หลังเรียน (Knowledge)</p>
                   <div className="bg-white px-2 py-1.5 rounded-lg text-[#EA580C] font-black text-xs w-full border border-[#FFEDD5]">
                     {postKnowledgeScore !== null ? `${postKnowledgeScore}/20` : '—'}
                   </div>
-                </div>
+                </Link>
 
                 {/* Post ทักษะ: Rose */}
-                <div className="bg-[#FFF1F2] border border-[#FFE4E6] rounded-3xl p-3 sm:p-4 flex flex-col items-center text-center shadow-sm hover:-translate-y-1 transition-transform">
-                  <div className="w-12 h-12 rounded-full bg-white text-[#E11D48] text-2xl flex items-center justify-center shadow-sm mb-2">🎯</div>
+                <Link href="/student/tests/post_skill" className="bg-[#FFF1F2] border border-[#FFE4E6] rounded-3xl p-3 sm:p-4 flex flex-col items-center text-center shadow-sm hover:-translate-y-1 transition-transform cursor-pointer group">
+                  <div className="w-12 h-12 rounded-full bg-white text-[#E11D48] text-2xl flex items-center justify-center shadow-sm mb-2 group-hover:scale-110 transition-transform">🎯</div>
                   <h4 className="font-bold text-[#E11D48] text-xs mb-0.5">Post — ทักษะ</h4>
                   <p className="text-[9px] text-slate-500 font-medium mb-2">หลังเรียน (Skill)</p>
                   <div className="bg-white px-2 py-1.5 rounded-lg text-[#E11D48] font-black text-xs w-full border border-[#FFE4E6]">
                     {postSkillScore !== null ? `${postSkillScore}/20` : '—'}
                   </div>
-                </div>
+                </Link>
 
                 {/* Game: Purple */}
-                <div className="bg-[#FAF5FF] border border-[#F3E8FF] rounded-3xl p-3 sm:p-4 flex flex-col items-center text-center shadow-sm hover:-translate-y-1 transition-transform">
-                  <div className="w-12 h-12 rounded-full bg-white text-[#9333EA] text-2xl flex items-center justify-center shadow-sm mb-2">🎮</div>
+                <Link href="/student/game" className="bg-[#FAF5FF] border border-[#F3E8FF] rounded-3xl p-3 sm:p-4 flex flex-col items-center text-center shadow-sm hover:-translate-y-1 transition-transform cursor-pointer group">
+                  <div className="w-12 h-12 rounded-full bg-white text-[#9333EA] text-2xl flex items-center justify-center shadow-sm mb-2 group-hover:scale-110 transition-transform">🎮</div>
                   <h4 className="font-bold text-[#9333EA] text-xs mb-0.5">บอร์ดเกม</h4>
                   <p className="text-[9px] text-slate-500 font-medium mb-2">แต้มจากการเล่น</p>
                   <div className="bg-white px-2 py-1.5 rounded-lg text-[#9333EA] font-black text-xs w-full border border-[#F3E8FF]">
                     {gameScore !== null ? `${gameScore}` : '—'}
                   </div>
-                </div>
+                </Link>
 
                 {/* Time + Quests combined: Blue */}
-                <div className="bg-[#EFF6FF] border border-[#DBEAFE] rounded-3xl p-3 sm:p-4 flex flex-col items-center text-center shadow-sm hover:-translate-y-1 transition-transform">
-                  <div className="w-12 h-12 rounded-full bg-white text-[#2563EB] text-2xl flex items-center justify-center shadow-sm mb-2">⏳</div>
+                <Link href="/student/badges" className="bg-[#EFF6FF] border border-[#DBEAFE] rounded-3xl p-3 sm:p-4 flex flex-col items-center text-center shadow-sm hover:-translate-y-1 transition-transform cursor-pointer group">
+                  <div className="w-12 h-12 rounded-full bg-white text-[#2563EB] text-2xl flex items-center justify-center shadow-sm mb-2 group-hover:scale-110 transition-transform">⏳</div>
                   <h4 className="font-bold text-[#2563EB] text-xs mb-0.5">เวลา / เควส</h4>
                   <p className="text-[9px] text-slate-500 font-medium mb-2">เวลาสะสม / ภารกิจ</p>
                   <div className="bg-white px-2 py-1.5 rounded-lg text-[#2563EB] font-black text-xs w-full border border-[#DBEAFE]">
                     {Math.floor(totalTimeSpent / 60)} นาที · {dbData?.questsCompleted ?? completedQuestsCount}/{quests.length}
                   </div>
-                </div>
+                </Link>
 
               </div>
 
