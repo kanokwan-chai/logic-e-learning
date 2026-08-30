@@ -27,23 +27,24 @@ const classData: { class: string; pretest: number; posttest: number }[] = [];
 // ข้อมูลกิจกรรมรายสัปดาห์ (จะดึงจาก Supabase เมื่อเชื่อมต่อ)
 const weeklyData: { day: string; time: number; students: number }[] = [];
 
-export function SkillRadarChart() {
-  if (radarData.length === 0) {
+export function SkillRadarChart({ data }: { data?: { skill: string; score: number }[] }) {
+  const chartData = data && data.length > 0 ? data : radarData;
+  if (chartData.length === 0) {
     return (
       <div className="w-full h-64 flex items-center justify-center text-slate-400 text-xs font-bold border-2 border-dashed border-slate-200 rounded-2xl">
-        รอข้อมูลจริงจาก Supabase
+        ยังไม่มีข้อมูลการประเมินทักษะ
       </div>
     );
   }
   return (
     <div className="w-full h-64">
       <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+        <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData}>
           <PolarGrid stroke="#E2E8F0" />
-          <PolarAngleAxis dataKey="skill" tick={{ fill: '#475569', fontSize: 11 }} />
-          <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#CBD5E1" />
-          <Radar name="ความชำนาญเฉลี่ย (%)" dataKey="score" stroke="#7C6CF2" fill="#7C6CF2" fillOpacity={0.4} />
-          <Tooltip />
+          <PolarAngleAxis dataKey="skill" tick={{ fill: '#475569', fontSize: 10, fontWeight: 700 }} />
+          <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#CBD5E1" tick={{ fontSize: 9 }} />
+          <Radar name="ความชำนาญเฉลี่ย (%)" dataKey="score" stroke="#4285F4" fill="#4285F4" fillOpacity={0.4} />
+          <Tooltip contentStyle={{ borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }} />
         </RadarChart>
       </ResponsiveContainer>
     </div>

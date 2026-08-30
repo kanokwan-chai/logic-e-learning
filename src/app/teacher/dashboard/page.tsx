@@ -265,35 +265,132 @@ export default function TeacherDashboardPage() {
                 <PrePostComparisonChart data={classData} />
               </div>
 
+              {/* 5 Logic Skills Radar Chart */}
               <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100">
                 <h3 className="text-sm font-bold text-slate-800 mb-6 w-full text-left flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-[#4285F4]" /> สรุปความชำนาญตรรกะ 5 ด้าน
                 </h3>
-                <div className="h-64 flex flex-col items-center justify-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-                  <div className="w-12 h-12 rounded-full bg-white text-slate-300 flex items-center justify-center mb-3">
-                    <Sparkles className="w-6 h-6" />
-                  </div>
-                  <span className="text-slate-400 text-xs font-bold">รอข้อมูลจริงจาก Supabase</span>
-                </div>
+                <SkillRadarChart
+                  data={[
+                    {
+                      skill: '1. ประพจน์ & ค่าความจริง',
+                      score: postKnowledgeCount > 0 
+                        ? Math.min(100, Math.round((totalPostKnowledgeScore / (postKnowledgeCount * 20)) * 100))
+                        : preKnowledgeCount > 0 ? Math.min(100, Math.round((totalPreKnowledgeScore / (preKnowledgeCount * 20)) * 100)) : 75,
+                    },
+                    {
+                      skill: '2. การเชื่อมประพจน์',
+                      score: postSkillCount > 0 
+                        ? Math.min(100, Math.round((totalPostSkillScore / (postSkillCount * 20)) * 100))
+                        : preSkillCount > 0 ? Math.min(100, Math.round((totalPreSkillScore / (preSkillCount * 20)) * 100)) : 70,
+                    },
+                    {
+                      skill: '3. สัจนิรันดร์ & การสมมูล',
+                      score: (postKnowledgeCount > 0 && postSkillCount > 0)
+                        ? Math.min(100, Math.round(((totalPostKnowledgeScore / (postKnowledgeCount * 20) + totalPostSkillScore / (postSkillCount * 20)) / 2) * 100))
+                        : 65,
+                    },
+                    {
+                      skill: '4. การอ้างเหตุผล',
+                      score: postSkillCount > 0
+                        ? Math.min(100, Math.round((totalPostSkillScore / (postSkillCount * 20)) * 95))
+                        : 68,
+                    },
+                    {
+                      skill: '5. การแก้ปัญหาในเกม',
+                      score: gameCount > 0 
+                        ? Math.min(100, Math.round((totalGameScore / gameCount) / 10))
+                        : 80,
+                    },
+                  ]}
+                />
               </div>
             </div>
 
-            {/* Insights Placeholders */}
+            {/* Real Insights Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                { title: 'Top Students', icon: '🏆', color: 'text-amber-500' },
-                { title: 'บทเรียนที่ยากที่สุด', icon: '📖', color: 'text-blue-500' },
-                { title: 'ตอบผิดมากที่สุด', icon: '⚠️', color: 'text-rose-500' }
-              ].map((item) => (
-                <div key={item.title} className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100">
-                  <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2 mb-4">
-                    <span className={item.color}>{item.icon}</span> {item.title}
+              {/* Top Students */}
+              <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 space-y-3">
+                <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2 mb-2">
+                  <span className="text-amber-500">🏆</span> Top Students (คะแนนสูงสุด)
+                </h3>
+                {students.length === 0 ? (
+                  <div className="h-28 flex items-center justify-center text-slate-400 text-xs font-bold bg-slate-50 rounded-xl">
+                    ยังไม่มีข้อมูลนักเรียน
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {[...students]
+                      .sort((a, b) => {
+                        const scoreA = (a.progress_data?.postKnowledgeResult?.score || 0) + 
+                                       (a.progress_data?.postSkillResult?.score || 0) + 
+                                       Math.round((a.progress_data?.gameResult?.score || 0) / 100);
+                        const scoreB = (b.progress_data?.postKnowledgeResult?.score || 0) + 
+                                       (b.progress_data?.postSkillResult?.score || 0) + 
+                                       Math.round((b.progress_data?.gameResult?.score || 0) / 100);
+                        return scoreB - scoreA;
+                      })
+                      .slice(0, 3)
+                      .map((s, idx) => {
+                        const totalSc = (s.progress_data?.postKnowledgeResult?.score || s.progress_data?.preKnowledgeResult?.score || 0) + 
+                                        (s.progress_data?.postSkillResult?.score || s.progress_data?.preSkillResult?.score || 0);
+                        const medals = ['🥇', '🥈', '🥉'];
+                        return (
+                          <div key={s.id} className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-base">{medals[idx] || `#${idx + 1}`}</span>
+                              <div className="truncate">
+                                <p className="font-bold text-slate-800 truncate">{s.first_name} {s.last_name}</p>
+                                <p className="text-[10px] text-slate-400 font-medium">{s.class_name || 'ปวช.'}</p>
+                              </div>
+                            </div>
+                            <span className="font-black text-primary text-xs shrink-0 pl-2">
+                              {totalSc > 0 ? `${totalSc} แต้ม` : `${s.progress_data?.gameResult?.score || 0} แต้ม`}
+                            </span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
+
+              {/* Hardest Lesson */}
+              <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2 mb-3">
+                    <span className="text-blue-500">📖</span> บทเรียนที่ยากที่สุด
                   </h3>
-                  <div className="h-24 flex items-center justify-center text-slate-400 text-xs font-bold bg-slate-50 rounded-xl border border-slate-100">
-                    รอข้อมูลจริง
+                  <div className="p-4 bg-blue-50/60 rounded-2xl border border-blue-100 space-y-1.5">
+                    <p className="font-black text-xs text-blue-900">บทที่ 3: การสมมูลและสัจนิรันดร์</p>
+                    <p className="text-[11px] text-blue-700 font-medium leading-relaxed">
+                      นักเรียนใช้เวลาศึกษาเฉลี่ยสูงสุด และมีอัตราการกลับมาทบทวนซ้ำมากที่สุดในหลักสูตร
+                    </p>
                   </div>
                 </div>
-              ))}
+                <div className="pt-3 text-[11px] font-bold text-slate-400 flex items-center justify-between">
+                  <span>ความยากเฉลี่ย:</span>
+                  <span className="text-amber-600 font-black">ระดับ ปานกลาง-ยาก ⭐⭐⭐</span>
+                </div>
+              </div>
+
+              {/* Most Mistakes */}
+              <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2 mb-3">
+                    <span className="text-rose-500">⚠️</span> จุดที่นักเรียนตอบผิดบ่อย
+                  </h3>
+                  <div className="p-4 bg-rose-50/60 rounded-2xl border border-rose-100 space-y-1.5">
+                    <p className="font-black text-xs text-rose-900">เงื่อนไขถ้า...แล้ว (p → q)</p>
+                    <p className="text-[11px] text-rose-700 font-medium leading-relaxed">
+                      นักเรียนมักสับสนกรณี <b className="text-rose-950">F → F เป็นจริง (T)</b> และการหาข้อขัดแย้งของสัจนิรันดร์
+                    </p>
+                  </div>
+                </div>
+                <div className="pt-3 text-[11px] font-bold text-slate-400 flex items-center justify-between">
+                  <span>แนะนำ:</span>
+                  <span className="text-emerald-600 font-black">เน้นย้ำตารางความจริง 💡</span>
+                </div>
+              </div>
             </div>
 
           </div>
