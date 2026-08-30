@@ -329,3 +329,56 @@ export async function fetchStudentDashboardData(studentId: string): Promise<Dash
 
   return result;
 }
+
+/**
+ * รีเซ็ตคะแนนและความคืบหน้าทั้งหมดของนักเรียน (Pre/Post test, บทเรียน, เกม, แบบประเมิน)
+ */
+export async function resetStudentProgressInDB(studentId: string) {
+  try {
+    // 1. Reset progress_data in students table
+    await supabase.from('students').update({
+      progress_data: {
+        completedLessons: [],
+        unlockedBadgeIds: [],
+        totalStudyTimeSec: 0,
+        preKnowledgeResult: null,
+        preSkillResult: null,
+        postKnowledgeResult: null,
+        postSkillResult: null,
+        gameResult: null,
+        surveyCompleted: false,
+      },
+    }).eq('id', studentId);
+
+    // 2. Delete test results
+    await supabase.from('test_results').delete().eq('student_id', studentId);
+
+    // 3. Delete / reset quest progress
+    await supabase.from('quest_progress').delete().eq('student_id', studentId);
+
+    // 4. Delete game progress
+    await supabase.from('game_progress').delete().eq('student_id', studentId);
+
+    // 5. Delete survey responses
+    await supabase.from('survey_responses').delete().eq('user_id', studentId);
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error resetting student progress:', error);
+    return { success: false, error };
+  }
+}
+
+/**
+ * ลบข้อมูลนักเรียนออกจากระบบ
+ */
+export async function deleteStudentFromDB(studentId: string) {
+  try {
+    await resetStudentProgressInDB(studentId);
+    await supabase.from('students').delete().eq('id', studentId);
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting student:', error);
+    return { success: false, error };
+  }
+}
