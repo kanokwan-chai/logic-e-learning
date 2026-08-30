@@ -130,7 +130,20 @@ export default function StudentDashboardPage() {
                   ตรวจสอบความคืบหน้า คะแนนแบบทดสอบ และเข้าเรียนบทเรียนต่างๆ ได้จากหน้านี้
                 </p>
                 
-
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <Link
+                    href="/student/game"
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-blue-600 hover:bg-blue-50 font-black text-sm shadow-lg hover:scale-105 transition-all"
+                  >
+                    <Gamepad2 className="w-5 h-5 text-purple-600" /> เข้าเล่น Digital Board Game 🎮
+                  </Link>
+                  <Link
+                    href="/student/lessons"
+                    className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/40 text-white font-bold text-sm shadow-sm transition-all"
+                  >
+                    <BookOpen className="w-5 h-5" /> ดูบทเรียน 📖
+                  </Link>
+                </div>
               </div>
 
               {/* 3D Student Character Image */}
