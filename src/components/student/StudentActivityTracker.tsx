@@ -73,17 +73,40 @@ export default function StudentActivityTracker() {
         return;
       }
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching progress:', error);
-        useLearningStore.setState({ isHydrated: true });
-        return;
+      // Also check test_results table to ensure 100% score persistence
+      const { data: dbTests } = await supabase
+        .from('test_results')
+        .select('*')
+        .eq('student_id', userId)
+        .order('completed_at', { ascending: false });
+
+      let mergedProgress = { ...(data?.progress_data || {}) };
+
+      if (dbTests && dbTests.length > 0) {
+        for (const t of dbTests) {
+          const fieldMap: Record<string, string> = {
+            pre_knowledge: 'preKnowledgeResult',
+            pre_skill: 'preSkillResult',
+            post_knowledge: 'postKnowledgeResult',
+            post_skill: 'postSkillResult',
+          };
+          const key = fieldMap[t.test_type];
+          if (key && !mergedProgress[key]) {
+            mergedProgress[key] = {
+              id: `${t.test_type}-${t.id}`,
+              user_id: userId,
+              score: Number(t.score),
+              total_questions: Number(t.max_score) || 20,
+              answers: t.answers || [],
+              time_spent_sec: Number(t.time_spent_sec) || 0,
+              completed_at: t.completed_at || new Date().toISOString(),
+            };
+          }
+        }
       }
 
-      if (data?.progress_data && isSubscribed) {
-        // ใช้ข้อมูลจากฐานข้อมูล Supabase เป็นหลักเสมอ (Single Source of Truth)
-        useLearningStore.setState({ ...data.progress_data, isHydrated: true });
-      } else {
-        useLearningStore.setState({ isHydrated: true });
+      if (isSubscribed) {
+        useLearningStore.setState({ ...mergedProgress, isHydrated: true });
       }
 
       if (typeof window !== 'undefined') {
