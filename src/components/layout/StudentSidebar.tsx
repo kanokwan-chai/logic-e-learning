@@ -84,9 +84,10 @@ export default function StudentSidebar() {
         />
       )}
 
-      {/* Sidebar Navigation */}
+      {/* Sidebar Content */}
+      <div className={`hidden md:block shrink-0 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`} />
       <aside 
-        className={`fixed md:static inset-y-0 left-0 z-50 md:z-30 bg-white border-r border-slate-100 shadow-soft-sm md:shadow-none shrink-0 flex flex-col transition-all duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-100 shadow-soft-sm shrink-0 flex flex-col transition-all duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         } ${isCollapsed ? 'md:w-20' : 'md:w-64'}`}
       >
