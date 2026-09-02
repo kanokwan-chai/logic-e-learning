@@ -86,16 +86,16 @@ export default function StudentSidebar() {
 
       {/* Sidebar Navigation */}
       <aside 
-        className={`fixed md:static inset-y-0 left-0 z-40 bg-white border-r border-slate-100 shadow-soft-sm md:shadow-none shrink-0 flex flex-col transition-all duration-300 ease-in-out ${
+        className={`fixed md:static inset-y-0 left-0 z-50 md:z-30 bg-white border-r border-slate-100 shadow-soft-sm md:shadow-none shrink-0 flex flex-col transition-all duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         } ${isCollapsed ? 'md:w-20' : 'md:w-64'}`}
       >
         
         {/* Header with Logo and Collapse Button */}
-        <div className={`h-20 flex items-center bg-white border-b border-slate-50 transition-all ${isCollapsed ? 'px-3 justify-center' : 'px-5 justify-between'}`}>
-          <Link href="/student/dashboard" className={`flex items-center gap-2.5 group overflow-hidden ${isCollapsed ? 'justify-center' : ''}`} title="LogicLearn">
-            <div className="w-9 h-9 text-blue-600 flex items-center justify-center shrink-0">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8">
+        <div className={`h-20 flex bg-white border-b border-slate-50 transition-all ${isCollapsed ? 'flex-col items-center justify-center gap-1.5 py-2' : 'items-center px-5 justify-between'}`}>
+          <Link href="/student/dashboard" className={`flex items-center gap-2.5 group overflow-hidden ${isCollapsed ? 'justify-center w-full' : ''}`} title="LogicLearn">
+            <div className={`text-blue-600 flex items-center justify-center shrink-0 transition-all ${isCollapsed ? 'w-7 h-7' : 'w-9 h-9'}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={isCollapsed ? 'w-6 h-6' : 'w-8 h-8'}>
                 <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
                 <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
               </svg>
@@ -111,19 +111,21 @@ export default function StudentSidebar() {
           {/* Desktop Collapse Toggle Button (< / >) */}
           <button
             onClick={toggleCollapse}
-            className={`hidden md:flex items-center justify-center p-1.5 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all ${
-              isCollapsed ? 'w-full mt-2' : 'ml-1'
+            className={`hidden md:flex items-center justify-center transition-all ${
+              isCollapsed 
+                ? 'w-full max-w-[1.75rem] py-0.5 rounded-lg text-slate-300 hover:text-blue-600 hover:bg-blue-50/50' 
+                : 'ml-1 p-1.5 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50'
             }`}
             title={isCollapsed ? 'ขยายแถบเมนู' : 'พับเก็บแถบเมนู'}
             aria-label="Toggle sidebar"
           >
-            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
 
           {/* Mobile Close Button */}
           <button 
             onClick={() => setIsOpen(false)} 
-            className="md:hidden ml-auto p-1.5 text-slate-400 hover:text-danger hover:bg-rose-50 rounded-lg"
+            className={`md:hidden p-1.5 text-slate-400 hover:text-danger hover:bg-rose-50 rounded-lg ${isCollapsed ? 'mt-1' : 'ml-auto'}`}
           >
             <X className="w-5 h-5" />
           </button>
