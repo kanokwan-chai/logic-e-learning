@@ -1,4 +1,5 @@
 'use client';
+
 import { useStudentAuth } from '@/lib/hooks/useStudentAuth';
 
 import StudentSidebar from '@/components/layout/StudentSidebar';
