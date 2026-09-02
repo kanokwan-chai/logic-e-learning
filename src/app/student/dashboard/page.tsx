@@ -88,7 +88,7 @@ export default function StudentDashboardPage() {
   const quests = [
     { title: 'ก่อนเรียน (ความรู้)', isDone: preKnowledgeScore !== null, href: '/student/tests/pre_knowledge', isLocked: false },
     { title: 'ก่อนเรียน (ทักษะ)', isDone: preSkillScore !== null, href: '/student/tests/pre_skill', isLocked: preKnowledgeScore === null },
-    { title: 'บทเรียนตรรกศาสตร์', isDone: isAllLessonsCompleted, href: '/student/lessons', isLocked: !isPreTestsDone },
+    { title: 'บทเรียนตรรกศาสตร์', isDone: isAllLessonsCompleted, href: '/student/lessons', isLocked: preSkillScore === null },
     { title: 'Digital Board Game Mission', isDone: gameScore !== null, href: '/student/game', isLocked: !isAllLessonsCompleted },
     { title: 'หลังเรียน (ความรู้)', isDone: postKnowledgeScore !== null, href: '/student/tests/post_knowledge', isLocked: gameScore === null },
     { title: 'หลังเรียน (ทักษะ)', isDone: postSkillScore !== null, href: '/student/tests/post_skill', isLocked: postKnowledgeScore === null },

@@ -122,8 +122,8 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     );
   }
 
-  // Pre-test Lock check
-  if (!isPreTestsCompleted) {
+  // Pre-test Lock check: Must complete Pre-Skill test before accessing lessons
+  if (!preSkillResult) {
     return (
       <div className="flex flex-col md:flex-row gap-6">
         <StudentSidebar />
@@ -133,8 +133,8 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           </div>
           <div className="space-y-2">
             <h2 className="text-2xl font-black text-slate-800">บทเรียนยังถูกล็อกอยู่!</h2>
-            <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-md mx-auto">
-              ก่อนเริ่มเรียนบทเรียนตรรกศาสตร์ คุณต้องทำแบบทดสอบก่อนเรียนให้ครบทั้ง 2 ส่วน (ความรู้และทักษะ) ก่อนนะคะ
+            <p className="text-sm text-slate-600 font-medium leading-relaxed max-w-md mx-auto">
+              ต้องทำ <strong>แบบทดสอบวัดทักษะก่อนเรียน (Pre-test)</strong> ให้เสร็จก่อนเท่านั้น ถึงจะเข้าสู่บทเรียนได้ค่ะ
             </p>
           </div>
 

@@ -42,16 +42,16 @@ export default function LessonsListPage() {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
             <p className="text-xs text-slate-400 font-bold">กำลังโหลดบทเรียน...</p>
           </div>
-        ) : !isPreTestsCompleted ? (
-          /* Locked State if Pre-tests not completed */
+        ) : !preSkillResult ? (
+          /* Locked State: Must complete Pre-Skill test before accessing lessons */
           <div className="p-10 rounded-4xl bg-white border-2 border-amber-200 shadow-soft-md text-center space-y-6 max-w-2xl mx-auto my-6">
             <div className="w-20 h-20 rounded-3xl bg-amber-50 text-amber-500 mx-auto flex items-center justify-center shadow-inner">
               <Lock className="w-10 h-10" />
             </div>
             <div className="space-y-2">
               <h2 className="text-2xl font-black text-slate-800">บทเรียนยังถูกล็อกอยู่!</h2>
-              <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-md mx-auto">
-                ก่อนเริ่มเรียนบทเรียนตรรกศาสตร์ คุณต้องทำ <strong>แบบทดสอบก่อนเรียน (Pre-test)</strong> ให้ครบทั้ง 2 ส่วน (ความรู้และทักษะ) ก่อนนะคะ
+              <p className="text-sm text-slate-600 font-medium leading-relaxed max-w-md mx-auto">
+                ต้องทำ <strong>แบบทดสอบวัดทักษะก่อนเรียน (Pre-test)</strong> ให้เสร็จก่อนเท่านั้น ถึงจะเข้าสู่บทเรียนได้ค่ะ
               </p>
             </div>
 

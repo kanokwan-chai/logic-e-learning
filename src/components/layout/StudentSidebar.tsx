@@ -47,26 +47,20 @@ export default function StudentSidebar() {
     isHydrated,
   } = useLearningStore();
 
-  // Learning progression conditions
-  const isPreTestsCompleted = !!preKnowledgeResult && !!preSkillResult;
+  // Strict sequential learning progression:
+  // 1. Pre-Knowledge -> 2. Pre-Skill -> 3. Lessons -> 4. Game -> 5. Post-Knowledge -> 6. Post-Skill -> 7. Survey
   const allLessonsDone = publishedLessons.length > 0 
     ? publishedLessons.every((l) => completedLessons.includes(l.id))
     : completedLessons.length >= 1;
-  const isAllActivitiesCompletedForSurvey =
-    isPreTestsCompleted &&
-    allLessonsDone &&
-    !!gameResult &&
-    !!postKnowledgeResult &&
-    !!postSkillResult;
 
   const quests = [
     { label: 'ก่อนเรียน (ความรู้)', href: '/student/tests/pre_knowledge', icon: FileCheck2, isLocked: false, isExternal: false },
     { label: 'ก่อนเรียน (ทักษะ)', href: '/student/tests/pre_skill', icon: FileCheck2, isLocked: !preKnowledgeResult, isExternal: false },
-    { label: 'บทเรียนตรรกศาสตร์', href: '/student/lessons', icon: BookOpen, isLocked: !isPreTestsCompleted, isExternal: false },
+    { label: 'บทเรียนตรรกศาสตร์', href: '/student/lessons', icon: BookOpen, isLocked: !preSkillResult, isExternal: false },
     { label: 'Digital Board Game', href: '/student/game', icon: Gamepad2, isLocked: !allLessonsDone, isExternal: false },
     { label: 'หลังเรียน (ความรู้)', href: '/student/tests/post_knowledge', icon: FileCheck2, isLocked: !gameResult, isExternal: false },
     { label: 'หลังเรียน (ทักษะ)', href: '/student/tests/post_skill', icon: FileCheck2, isLocked: !postKnowledgeResult, isExternal: false },
-    { label: 'ประเมินความพึงพอใจ', href: '/student/survey', icon: Star, isLocked: !isAllActivitiesCompletedForSurvey, isExternal: false },
+    { label: 'ประเมินความพึงพอใจ', href: '/student/survey', icon: Star, isLocked: !postSkillResult, isExternal: false },
   ];
 
   return (

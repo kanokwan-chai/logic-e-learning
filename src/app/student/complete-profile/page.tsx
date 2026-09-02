@@ -161,8 +161,6 @@ export default function CompleteProfilePage() {
                   className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all font-bold text-slate-700 shadow-inner appearance-none cursor-pointer"
                 >
                   <option value="ปวช.1 ธดท.">ปวช.1 ธดท.</option>
-                  <option value="ปวช.1 ชก.">ปวช.1 ชก.</option>
-                  <option value="ปวช.1 ชฟ.">ปวช.1 ชฟ.</option>
                 </select>
               </div>
             </div>
