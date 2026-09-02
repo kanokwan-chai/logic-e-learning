@@ -27,7 +27,7 @@ export default function SessionHandlerPage() {
         if (student) {
           router.replace('/student/dashboard');
         } else {
-          router.replace('/student/complete-profile');
+          window.location.replace('/student/complete-profile?refresh=' + Date.now());
         }
       } catch (e) {
         router.replace('/student/dashboard');
