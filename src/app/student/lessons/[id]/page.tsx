@@ -24,6 +24,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
   const lessonIndex = lessons.findIndex((l) => l.id === resolvedParams.id);
   const lesson = lessonIndex !== -1 ? lessons[lessonIndex] : undefined;
+  const nextLesson = lessonIndex !== -1 && lessonIndex < lessons.length - 1 ? lessons[lessonIndex + 1] : undefined;
 
   const isCompleted = lesson ? completedLessons.includes(lesson.id) : false;
 
@@ -286,30 +287,41 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
             </p>
           </div>
 
-          <div className="flex items-center justify-between pt-2">
-            <Link href="/student/lessons" className="text-xs font-bold text-slate-500 hover:text-slate-800">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+            <Link href="/student/lessons" className="text-xs font-bold text-slate-500 hover:text-slate-800 self-start sm:self-center">
               ← ย้อนกลับ
             </Link>
 
-            <button
-              onClick={handleFinishLesson}
-              disabled={!canFinish}
-              className={`px-6 py-3 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 ${
-                isCompleted
-                  ? 'bg-emerald-500 text-white shadow-soft-sm'
-                  : canFinish
-                    ? 'bg-primary text-white hover:bg-primary-hover shadow-soft-md'
-                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-              }`}
-            >
-              {isCompleted ? (
-                <><CheckCircle2 className="w-4 h-4 text-white" /> เรียนจบแล้ว ✓</>
-              ) : canFinish ? (
-                <>กดเพื่อเรียนจบ <ArrowRight className="w-4 h-4" /></>
-              ) : (
-                <>เลื่อนลงมาให้สุด ⬇️</>
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              <button
+                onClick={handleFinishLesson}
+                disabled={!canFinish}
+                className={`w-full sm:w-auto px-6 py-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                  isCompleted
+                    ? 'bg-emerald-500 text-white shadow-soft-sm'
+                    : canFinish
+                      ? 'bg-primary text-white hover:bg-primary-hover shadow-soft-md'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                }`}
+              >
+                {isCompleted ? (
+                  <><CheckCircle2 className="w-4 h-4 text-white" /> เรียนจบแล้ว ✓</>
+                ) : canFinish ? (
+                  <>กดเพื่อเรียนจบ <ArrowRight className="w-4 h-4" /></>
+                ) : (
+                  <>เลื่อนลงมาให้สุด ⬇️</>
+                )}
+              </button>
+
+              {isCompleted && nextLesson && (
+                <Link
+                  href={`/student/lessons/${nextLesson.id}`}
+                  className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-soft-sm animate-in fade-in zoom-in duration-300"
+                >
+                  บทเรียนถัดไป <ArrowRight className="w-4 h-4" />
+                </Link>
               )}
-            </button>
+            </div>
           </div>
         </div>
 
