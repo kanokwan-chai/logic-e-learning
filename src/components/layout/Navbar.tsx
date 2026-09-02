@@ -79,43 +79,43 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b-2 border-slate-100 shadow-soft-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-2">
 
         {/* Brand Logo */}
-        <div className="flex items-center gap-3 group">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary via-primary-hover to-purple-700 flex items-center justify-center text-white shadow-soft-md group-hover:scale-105 transition-transform border-b-4 border-purple-900">
-            <Compass className="w-7 h-7" />
+        <div className="flex items-center gap-2 sm:gap-3 group min-w-0">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-2xl bg-gradient-to-br from-primary via-primary-hover to-purple-700 flex items-center justify-center text-white shadow-soft-md group-hover:scale-105 transition-transform border-b-4 border-purple-900">
+            <Compass className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
-          <div>
-            <span className="font-black text-2xl text-slate-800 tracking-tight flex items-center gap-1.5">
-              Logic <span className="text-primary font-black">E-Learning</span>
+          <div className="min-w-0 flex-1">
+            <span className="font-black text-lg sm:text-2xl text-slate-800 tracking-tight flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
+              Logic <span className="text-primary font-black hidden xs:inline sm:inline">E-Learning</span>
             </span>
-            <span className="text-[11px] text-slate-500 font-bold block -mt-1">ระบบเรียนรู้ตรรกศาสตร์ ปวช.</span>
+            <span className="text-[9px] sm:text-[11px] text-slate-500 font-bold block -mt-1 truncate">ระบบเรียนรู้ตรรกศาสตร์ ปวช.</span>
           </div>
         </div>
 
         {/* Right Section */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 pr-12 md:pr-0">
 
           {/* Notifications Bell */}
           {googleUser && (
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="p-3 rounded-2xl bg-slate-100 border-b-2 border-slate-300 hover:bg-slate-200 text-slate-700 transition-all relative"
+                className="p-2 sm:p-3 rounded-2xl bg-slate-100 border-b-2 border-slate-300 hover:bg-slate-200 text-slate-700 transition-all relative flex items-center justify-center"
                 title="ประกาศ"
               >
-                <Bell className="w-5 h-5" />
+                <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
                 {recentAnnouncements.length > 0 && (
                   <>
-                    <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
-                    <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-rose-500 border-2 border-white" />
+                    <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-rose-500 animate-ping" />
+                    <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-rose-500 border-2 border-white" />
                   </>
                 )}
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 mt-3 w-80 bg-white rounded-3xl shadow-soft-lg border-2 border-slate-100 p-4 z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="absolute right-0 mt-3 w-72 sm:w-80 bg-white rounded-3xl shadow-soft-lg border-2 border-slate-100 p-4 z-50 animate-in fade-in slide-in-from-top-2">
                   <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                     <h4 className="font-extrabold text-xs text-slate-800">📢 ประกาศจากครู</h4>
                     {recentAnnouncements.length > 0 && (
@@ -150,12 +150,12 @@ export default function Navbar() {
 
           {/* User Profile */}
           {googleUser ? (
-            <div className="flex items-center gap-3 pl-2">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <Link href="/student/profile" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
                 <img
                   src={avatarUrl}
                   alt={displayName}
-                  className="w-10 h-10 rounded-2xl bg-slate-100 border-2 border-primary/40 object-cover shadow-soft-sm"
+                  className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-2xl bg-slate-100 border-2 border-primary/40 object-cover shadow-soft-sm"
                   referrerPolicy="no-referrer"
                 />
                 <div className="hidden md:block text-left">
@@ -168,7 +168,7 @@ export default function Navbar() {
 
               <button
                 onClick={handleLogout}
-                className="p-2.5 rounded-2xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors"
+                className="hidden sm:flex p-2.5 rounded-2xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors shrink-0"
                 title="ออกจากระบบ"
               >
                 <LogOut className="w-5 h-5" />
@@ -177,7 +177,7 @@ export default function Navbar() {
           ) : (
             <Link
               href="/student/login"
-              className="px-5 py-2.5 rounded-2xl bg-primary text-white text-xs font-extrabold shadow-soft-sm hover:bg-primary-hover transition-colors border-b-4 border-purple-900"
+              className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl bg-primary text-white text-[10px] sm:text-xs font-extrabold shadow-soft-sm hover:bg-primary-hover transition-colors border-b-4 border-purple-900 shrink-0 whitespace-nowrap"
             >
               เข้าเรียน
             </Link>
