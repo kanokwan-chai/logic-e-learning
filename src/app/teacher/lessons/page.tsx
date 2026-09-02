@@ -179,9 +179,9 @@ export default function TeacherLessonsPage() {
   const togglePublish = (lesson: CMSLesson) => updateLesson({ ...lesson, published: !lesson.published });
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
+    <div className="min-h-[calc(100vh-140px)] bg-[#F8FAFC] font-sans md:flex md:h-[calc(100vh-140px)] md:overflow-hidden rounded-3xl shadow-sm border border-slate-200">
       <TeacherSidebar />
-      <div className="flex-1 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="p-6 rounded-3xl bg-white border border-slate-100 shadow-soft-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-extrabold text-slate-800 flex items-center gap-2">

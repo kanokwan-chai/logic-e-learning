@@ -50,7 +50,7 @@ export default function TeacherSidebar() {
 
       {/* Sidebar Content */}
       <aside 
-        className={`fixed md:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-100 shadow-soft-sm md:shadow-none shrink-0 flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`fixed md:static inset-y-0 left-0 z-50 md:z-30 w-64 bg-white border-r border-slate-100 shadow-soft-sm md:shadow-none shrink-0 flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
