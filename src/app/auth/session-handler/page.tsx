@@ -10,79 +10,67 @@ export default function SessionHandlerPage() {
   const [status, setStatus] = useState('กำลังตรวจสอบ...');
 
   useEffect(() => {
-    const getNextPath = (progress: any) => {
-      if (!progress) return '/student/dashboard';
-      if (!progress.preKnowledgeResult) return '/student/tests/pre_knowledge';
-      if (!progress.preSkillResult) return '/student/tests/pre_skill';
-      if (!progress.completedLessons || progress.completedLessons.length === 0) return '/student/lessons';
-      if (!progress.gameResult) return '/student/game';
-      if (!progress.postKnowledgeResult) return '/student/tests/post_knowledge';
-      if (!progress.postSkillResult) return '/student/tests/post_skill';
-      return '/student/dashboard';
-    };
+    let isDone = false;
 
-    const handle = async () => {
-      // รอให้ Supabase parse URL และ exchange code เป็น session
-      const { data: { session }, error } = await supabase.auth.getSession();
+    const navigateUser = async (sessionUser: any) => {
+      if (isDone) return;
+      isDone = true;
+      setStatus('เข้าสู่ระบบสำเร็จ! 🎉 กำลังนำไปยังหน้าหลัก...');
 
-      if (error) {
-        setStatus('เกิดข้อผิดพลาด กำลังกลับหน้า login...');
-        setTimeout(() => router.replace('/student/login'), 1500);
-        return;
-      }
-
-      if (session) {
-        setStatus('เข้าสู่ระบบสำเร็จ! กำลังนำไปยังหน้าหลัก...');
-
+      try {
         const { data: student } = await supabase
           .from('students')
           .select('id')
-          .eq('id', session.user.id)
-          .single();
+          .eq('id', sessionUser.id)
+          .maybeSingle();
 
         if (student) {
           router.replace('/student/dashboard');
         } else {
           router.replace('/student/complete-profile');
         }
-      } else {
-        // รอ Supabase exchange code จาก URL query params
-        setStatus('กำลัง exchange token...');
-
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get('code');
-
-        if (code) {
-          const { data, error: exchError } = await supabase.auth.exchangeCodeForSession(code);
-
-          if (exchError || !data.session) {
-            setStatus('เกิดข้อผิดพลาด กำลังกลับหน้า login...');
-            setTimeout(() => router.replace('/student/login'), 1500);
-            return;
-          }
-
-          // เช็คว่ากรอกข้อมูลห้องเรียนแล้วยัง พร้อมดึง progress
-          const { data: student } = await supabase
-            .from('students')
-            .select('id, progress_data')
-            .eq('id', data.session.user.id)
-            .single();
-
-          setStatus('เข้าสู่ระบบสำเร็จ! 🎉');
-
-          if (student) {
-            router.replace('/student/dashboard');
-          } else {
-            router.replace('/student/complete-profile');
-          }
-        } else {
-          setStatus('ไม่พบ session กำลังกลับหน้า login...');
-          setTimeout(() => router.replace('/student/login'), 1500);
-        }
+      } catch (e) {
+        router.replace('/student/dashboard');
       }
     };
 
-    handle();
+    // 1. ตรวจสอบ session ปัจจุบันทันที
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        navigateUser(session.user);
+      }
+    });
+
+    // 2. ถ้ามี code query param (PKCE flow) ให้ exchange session
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
+        if (data?.session?.user) {
+          navigateUser(data.session.user);
+        }
+      });
+    }
+
+    // 3. ฟังเหตุการณ์ onAuthStateChange (รองรับ Implicit & PKCE flow ทุกกรณี)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        navigateUser(session.user);
+      }
+    });
+
+    // 4. รอสูงสุด 8 วินาที หากไม่มี session จริงๆ ค่อยกลับหน้า login
+    const timer = setTimeout(() => {
+      if (!isDone) {
+        setStatus('ไม่พบเซสชัน กำลังกลับสู่หน้าเข้าสู่ระบบ...');
+        setTimeout(() => router.replace('/student/login'), 1200);
+      }
+    }, 8000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timer);
+    };
   }, [router]);
 
   return (
