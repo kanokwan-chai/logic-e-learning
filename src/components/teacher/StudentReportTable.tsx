@@ -157,9 +157,7 @@ export default function StudentReportTable() {
             className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 font-bold text-slate-700"
           >
             <option value="ทั้งหมด">ห้องเรียน: ทั้งหมด</option>
-            <option value="ปวช. 1/1">ปวช. 1/1</option>
-            <option value="ปวช. 1/2">ปวช. 1/2</option>
-            <option value="ปวช. 1/3">ปวช. 1/3</option>
+            <option value="ปวช.1 ธดท.">ปวช.1 ธดท.</option>
           </select>
         </div>
 

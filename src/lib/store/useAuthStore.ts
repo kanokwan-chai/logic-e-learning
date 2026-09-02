@@ -27,7 +27,7 @@ export const useAuthStore = create<AuthState>()(
           first_name: firstName || 'สมชาย',
           last_name: lastName || 'รักการเรียน',
           seat_number: seatNumber || '1',
-          class_name: className || 'ปวช. 1/1',
+          class_name: className || 'ปวช.1 ธดท.',
           avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${fullName}`,
           created_at: new Date().toISOString(),
         };

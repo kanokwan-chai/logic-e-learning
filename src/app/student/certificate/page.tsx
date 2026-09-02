@@ -119,7 +119,7 @@ export default function CertificatePage() {
           <CertificateCanvas
             studentName={studentProfile ? `${studentProfile.first_name} ${studentProfile.last_name}` : authUser?.full_name || 'สมชาย รักการเรียน'}
             studentId={studentProfile?.number?.toString() || '1'}
-            className={studentProfile?.class_name || 'ปวช. 1/1'}
+            className={studentProfile?.class_name || 'ปวช.1 ธดท.'}
           />
         ) : (
           <div className="p-10 rounded-4xl bg-white border-2 border-slate-200 border-b-8 border-b-slate-300 text-center space-y-4 shadow-soft-md">
