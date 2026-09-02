@@ -155,13 +155,12 @@ export default function CompleteProfilePage() {
 
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-2">ชั้นเรียน <span className="text-rose-500">*</span></label>
-                <select
-                  value={className}
-                  onChange={(e) => setClassName(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all font-bold text-slate-700 shadow-inner appearance-none cursor-pointer"
-                >
-                  <option value="ปวช.1 ธดท.">ปวช.1 ธดท.</option>
-                </select>
+                <div className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl font-black text-slate-800 flex items-center justify-between shadow-inner">
+                  <span>ปวช.1 ธดท.</span>
+                  <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+                    ธุรกิจดิจิทัล
+                  </span>
+                </div>
               </div>
             </div>
 
