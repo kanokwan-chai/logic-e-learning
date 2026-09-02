@@ -11,12 +11,12 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { saveLessonCompletionToDB } from '@/lib/supabase/db';
-import { BookOpen, Target, CheckCircle2, ArrowLeft, ArrowRight, Video, Presentation, AlertCircle, Loader2, Gamepad2, ExternalLink } from 'lucide-react';
+import { BookOpen, Target, CheckCircle2, ArrowLeft, ArrowRight, Video, Presentation, AlertCircle, Loader2, Gamepad2, ExternalLink, Lock } from 'lucide-react';
 
 export default function LessonDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const { lessons: allLessons, loading } = useLessons();
-  const { completedLessons, completeLesson, preSkillResult, saveGameResult } = useLearningStore();
+  const { completedLessons, completeLesson, preKnowledgeResult, preSkillResult, saveGameResult } = useLearningStore();
   const router = useRouter();
 
   // Only consider published lessons for progression
@@ -109,12 +109,43 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     return url;
   };
 
-  if (loading) {
+  const isPreTestsCompleted = !!preKnowledgeResult && !!preSkillResult;
+
+  if (loading || !isHydrated) {
     return (
       <div className="flex flex-col md:flex-row gap-6">
         <StudentSidebar />
         <div className="flex-1 flex justify-center p-12">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
+  // Pre-test Lock check
+  if (!isPreTestsCompleted) {
+    return (
+      <div className="flex flex-col md:flex-row gap-6">
+        <StudentSidebar />
+        <div className="flex-1 p-10 rounded-4xl bg-white border-2 border-amber-200 shadow-soft-md text-center space-y-6 max-w-2xl mx-auto my-6">
+          <div className="w-20 h-20 rounded-3xl bg-amber-50 text-amber-500 mx-auto flex items-center justify-center shadow-inner">
+            <Lock className="w-10 h-10" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-slate-800">บทเรียนยังถูกล็อกอยู่!</h2>
+            <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-md mx-auto">
+              ก่อนเริ่มเรียนบทเรียนตรรกศาสตร์ คุณต้องทำแบบทดสอบก่อนเรียนให้ครบทั้ง 2 ส่วน (ความรู้และทักษะ) ก่อนนะคะ
+            </p>
+          </div>
+
+          <div className="pt-2">
+            <Link
+              href={!preKnowledgeResult ? '/student/tests/pre_knowledge' : '/student/tests/pre_skill'}
+              className="btn-3d-primary inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl text-white font-black text-sm shadow-soft-md"
+            >
+              {!preKnowledgeResult ? 'ไปทำ Pre-test (ความรู้)' : 'ไปทำ Pre-test (ทักษะ)'} <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </div>
     );

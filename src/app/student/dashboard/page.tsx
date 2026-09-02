@@ -80,13 +80,19 @@ export default function StudentDashboardPage() {
 
   const totalTimeSpent = dbData?.totalMinutes ? dbData.totalMinutes * 60 : useLearningStore.getState().totalStudyTimeSec;
 
+  const isPreTestsDone = preKnowledgeScore !== null && preSkillScore !== null;
+  const isAllLessonsCompleted = publishedLessons.length > 0
+    ? publishedLessons.every((l) => currentCompletedLessons.includes(l.id))
+    : currentCompletedLessons.length >= 1;
+
   const quests = [
     { title: 'ก่อนเรียน (ความรู้)', isDone: preKnowledgeScore !== null, href: '/student/tests/pre_knowledge', isLocked: false },
     { title: 'ก่อนเรียน (ทักษะ)', isDone: preSkillScore !== null, href: '/student/tests/pre_skill', isLocked: preKnowledgeScore === null },
-    { title: 'บทเรียนตรรกศาสตร์', isDone: currentCompletedLessons.length >= 1, href: '/student/lessons', isLocked: false },
-    { title: 'Digital Board Game Mission', isDone: gameScore !== null, href: '/student/game', isLocked: false },
+    { title: 'บทเรียนตรรกศาสตร์', isDone: isAllLessonsCompleted, href: '/student/lessons', isLocked: !isPreTestsDone },
+    { title: 'Digital Board Game Mission', isDone: gameScore !== null, href: '/student/game', isLocked: !isAllLessonsCompleted },
     { title: 'หลังเรียน (ความรู้)', isDone: postKnowledgeScore !== null, href: '/student/tests/post_knowledge', isLocked: gameScore === null },
     { title: 'หลังเรียน (ทักษะ)', isDone: postSkillScore !== null, href: '/student/tests/post_skill', isLocked: postKnowledgeScore === null },
+    { title: 'ประเมินความพึงพอใจ', isDone: useLearningStore.getState().surveyCompleted, href: '/student/survey', isLocked: postSkillScore === null },
   ];
 
   const completedQuestsCount = quests.filter((q) => q.isDone).length;
@@ -132,10 +138,16 @@ export default function StudentDashboardPage() {
                 
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   <Link
-                    href="/student/game"
+                    href={!isPreTestsDone ? '/student/tests/pre_knowledge' : !isAllLessonsCompleted ? '/student/lessons' : '/student/game'}
                     className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-blue-600 hover:bg-blue-50 font-black text-sm shadow-lg hover:scale-105 transition-all"
                   >
-                    <Gamepad2 className="w-5 h-5 text-purple-600" /> เข้าเล่น Digital Board Game 🎮
+                    {!isPreTestsDone ? (
+                      <><FileCheck2 className="w-5 h-5 text-blue-600" /> เริ่มทำ Pre-test 📝</>
+                    ) : !isAllLessonsCompleted ? (
+                      <><BookOpen className="w-5 h-5 text-blue-600" /> เข้าสู่บทเรียน 📖</>
+                    ) : (
+                      <><Gamepad2 className="w-5 h-5 text-purple-600" /> เข้าเล่น Digital Board Game 🎮</>
+                    )}
                   </Link>
                   <Link
                     href="/student/lessons"
