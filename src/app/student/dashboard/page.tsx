@@ -100,7 +100,7 @@ export default function StudentDashboardPage() {
 
   if (!isHydrated || isUserLoading) {
     return (
-      <div className="min-h-screen md:flex md:h-screen bg-[#F8FAFC] md:overflow-hidden font-sans">
+      <div className="min-h-[calc(100vh-80px)] bg-[#F8FAFC] font-sans md:flex md:h-[calc(100vh-80px)] md:overflow-hidden">
         <StudentSidebar />
         <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] gap-4">
           <Loader2 className="w-10 h-10 animate-spin text-[#4285F4]" />
@@ -111,7 +111,7 @@ export default function StudentDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen md:flex md:h-screen bg-[#F8FAFC] md:overflow-hidden font-sans">
+    <div className="min-h-[calc(100vh-80px)] bg-[#F8FAFC] font-sans md:flex md:h-[calc(100vh-80px)] md:overflow-hidden">
       <StudentSidebar />
 
       <div className="flex-1 flex flex-col md:h-full overflow-hidden">

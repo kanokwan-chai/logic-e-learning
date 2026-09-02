@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="th" className={`${kanit.variable}`} suppressHydrationWarning>
       <body className="bg-background text-slate-800 antialiased min-h-screen flex flex-col font-sans">
         <Navbar />
-        <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8">{children}</main>
+        <main className="flex-1 w-full">{children}</main>
       </body>
     </html>
   );

@@ -139,7 +139,7 @@ export default function StudentSurveyPage() {
   };
 
   return (
-    <div className="min-h-screen md:flex md:h-screen bg-[#F8FAFC] md:overflow-hidden font-sans">
+    <div className="min-h-[calc(100vh-80px)] bg-[#F8FAFC] font-sans md:flex md:h-[calc(100vh-80px)] md:overflow-hidden">
       <StudentSidebar />
 
       <div className="flex-1 flex flex-col md:h-full overflow-hidden">

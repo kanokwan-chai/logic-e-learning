@@ -114,9 +114,9 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
   if (loading || !isHydrated) {
     return (
-      <div className="flex flex-col md:flex-row gap-6">
-        <StudentSidebar />
-        <div className="flex-1 flex justify-center p-12">
+      <div className="min-h-[calc(100vh-80px)] bg-[#F8FAFC] font-sans md:flex md:h-[calc(100vh-80px)] md:overflow-hidden">
+      <StudentSidebar />
+        <div className="flex-1 flex justify-center p-12 overflow-y-auto">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       </div>
@@ -126,9 +126,9 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
   // Pre-test Lock check: Must complete Pre-Skill test before accessing lessons
   if (!preSkillResult) {
     return (
-      <div className="flex flex-col md:flex-row gap-6">
-        <StudentSidebar />
-        <div className="flex-1 p-10 rounded-4xl bg-white border-2 border-amber-200 shadow-soft-md text-center space-y-6 max-w-2xl mx-auto my-6">
+      <div className="min-h-[calc(100vh-80px)] bg-[#F8FAFC] font-sans md:flex md:h-[calc(100vh-80px)] md:overflow-hidden">
+      <StudentSidebar />
+        <div className="flex-1 overflow-y-auto p-10 rounded-4xl bg-white border-2 border-amber-200 shadow-soft-md text-center space-y-6 max-w-2xl mx-auto my-6">
           <div className="w-20 h-20 rounded-3xl bg-amber-50 text-amber-500 mx-auto flex items-center justify-center shadow-inner">
             <Lock className="w-10 h-10" />
           </div>
@@ -155,9 +155,9 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
   // Lesson not found
   if (!lesson) {
     return (
-      <div className="flex flex-col md:flex-row gap-6">
-        <StudentSidebar />
-        <div className="flex-1 p-8 rounded-4xl bg-amber-50 border-2 border-amber-200 flex items-start gap-3 text-xs text-amber-900">
+      <div className="min-h-[calc(100vh-80px)] bg-[#F8FAFC] font-sans md:flex md:h-[calc(100vh-80px)] md:overflow-hidden">
+      <StudentSidebar />
+        <div className="flex-1 overflow-y-auto p-8 rounded-4xl bg-amber-50 border-2 border-amber-200 flex items-start gap-3 text-xs text-amber-900">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-amber-500" />
           <div>
             <p className="font-extrabold">ไม่พบบทเรียนนี้</p>
@@ -174,10 +174,10 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
   const isGameMedia = lesson.video_url ? isBoardGameUrl(lesson.video_url) : false;
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
+    <div className="min-h-[calc(100vh-80px)] bg-[#F8FAFC] font-sans md:flex md:h-[calc(100vh-80px)] md:overflow-hidden">
       <StudentSidebar />
 
-      <div className="flex-1 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
         {/* Back Link */}
         <Link href="/student/lessons" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-primary transition-colors">
           <ArrowLeft className="w-4 h-4" /> กลับสู่รายการบทเรียน

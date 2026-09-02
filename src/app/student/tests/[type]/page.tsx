@@ -163,7 +163,7 @@ export default function TestPage() {
   const title = isValidType ? testTitles[testType] : '';
 
   return (
-    <div className="min-h-screen md:flex md:h-screen bg-[#F8FAFC] md:overflow-hidden font-sans">
+    <div className="min-h-[calc(100vh-80px)] bg-[#F8FAFC] font-sans md:flex md:h-[calc(100vh-80px)] md:overflow-hidden">
       <StudentSidebar />
 
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
